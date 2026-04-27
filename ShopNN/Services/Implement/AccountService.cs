@@ -9,40 +9,39 @@ namespace ShopNN.Services.Implement
     {
         private readonly IAuthService _authService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<ApplicationRole> _roleManager;
 
         public AccountService(
             IAuthService authService,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            RoleManager<ApplicationRole> roleManager)
         {
             _authService = authService;
             _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         // =========================
         // SIGN IN
         // =========================
-        public async Task<(string accessToken, string RefreshToken)> SignIn(SignInDTO dto)
-
+        public async Task<(string accessToken, string refreshToken)> SignIn(SignInDTO dto)
         {
             var user = await _userManager.FindByNameAsync(dto.Username);
 
-
+            if (user == null)
+                return (string.Empty, string.Empty);
 
             var valid = await _userManager.CheckPasswordAsync(user, dto.Password);
 
-            if (user != null && valid)
-            {
+            if (!valid)
+                return (string.Empty, string.Empty);
 
-                // 🔥 tạo token
-                var accessToken = await _authService.GenerateAccessTokenAsync(user);
-                var refreshToken = await _authService.GenerateRefreshTokenAsync();
+            var accessToken = await _authService.GenerateAccessTokenAsync(user);
+            var refreshToken = await _authService.GenerateRefreshTokenAsync();
 
-                // 🔥 lưu refresh token
-                await _authService.SaveRefreshTokenAsync(refreshToken, user);
+            await _authService.SaveRefreshTokenAsync(refreshToken, user);
 
-                return (accessToken, refreshToken);
-            }
-            return (null, null);
+            return (accessToken, refreshToken);
         }
 
         // =========================
@@ -58,17 +57,31 @@ namespace ShopNN.Services.Implement
 
             var result = await _userManager.CreateAsync(user, dto.Password);
 
-            // ❗ chỉ add role khi tạo user thành công
             if (!result.Succeeded)
-            {
                 return result;
+
+            // 🔥 đảm bảo role tồn tại
+            if (!await _roleManager.RoleExistsAsync("User"))
+            {
+                var roleResult = await _roleManager.CreateAsync(new ApplicationRole
+                {
+                    Name = "User"
+                });
+
+                if (!roleResult.Succeeded)
+                    return IdentityResult.Failed(new IdentityError
+                    {
+                        Description = "Failed to create role"
+                    });
             }
 
-            await _userManager.AddToRoleAsync(user, "User");
+            // 🔥 add role
+            var addRoleResult = await _userManager.AddToRoleAsync(user, "User");
+
+            if (!addRoleResult.Succeeded)
+                return addRoleResult;
 
             return result;
         }
-
-
     }
 }

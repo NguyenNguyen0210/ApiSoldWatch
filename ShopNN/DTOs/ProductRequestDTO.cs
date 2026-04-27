@@ -2,7 +2,7 @@
 
 namespace ShopNN.DTOs
 {
-    public class ProductDTO
+    public class ProductRequestDTO
     {
         [Required]
         public string Name { get; set; }

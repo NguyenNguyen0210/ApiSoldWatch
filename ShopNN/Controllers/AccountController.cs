@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ShopNN.DTOs;
 using ShopNN.Services.Interface;
 
@@ -12,33 +9,60 @@ namespace ShopNN.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
-        public AccountController(IAccountService accountService) 
+
+        public AccountController(IAccountService accountService)
         {
             _accountService = accountService;
         }
 
-        [HttpPost("SignUp")]
+        // =========================
+        // SIGN UP
+        // =========================
+        [HttpPost("signup")]
         public async Task<IActionResult> SignUp([FromBody] SignUpDTO dto)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
-            IdentityResult result = await  _accountService.SignUp(dto);
-            if (result.Succeeded)
+
+            var result = await _accountService.SignUp(dto);
+
+            if (!result.Succeeded)
+                return BadRequest(new
+                {
+                    message = "Sign up failed",
+                    errors = result.Errors.Select(e => e.Description)
+                });
+
+            return Ok(new
             {
-                return Ok(result);
-            }
-            return BadRequest(result);
-        }
-        [HttpPost("SignIn")]
-        public async Task<IActionResult> SignIn([FromBody] SignInDTO dto)
-        {
-            if(!ModelState.IsValid) return BadRequest(ModelState);
-            var (accessToken,RefreshToken) = await _accountService.SignIn(dto);
-            if (accessToken == null && RefreshToken == null) { return BadRequest("Không tồn tại User hoặc Sai PW"); }
-            return Ok(new {accessToken,RefreshToken});
+                message = "Sign up success"
+            });
         }
 
+        // =========================
+        // SIGN IN
+        // =========================
+        [HttpPost("signin")]
+        public async Task<IActionResult> SignIn([FromBody] SignInDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var (accessToken, refreshToken) = await _accountService.SignIn(dto);
+
+            if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
+            {
+                return Unauthorized(new
+                {
+                    message = "Invalid username or password"
+                });
+            }
+
+            return Ok(new
+            {
+                accessToken,
+                refreshToken
+            });
+        }
     }
 }

@@ -6,8 +6,8 @@ namespace ShopNN.Services.Interface
     {
         Task<OrderDTO>  CreateOrderAsync(Guid userId, List<OrderItemDTO> items);
 
-        Task<List<Order>> GetMyOrdersAsync(Guid userId);
+        Task<List<OrderDTO>> GetMyOrdersAsync(Guid userId);
 
-        Task<List<Order>> GetAllOrdersAsync(); // Admin
+        Task<List<OrderDTO>> GetAllOrdersAsync(); // Admin
     }
 }

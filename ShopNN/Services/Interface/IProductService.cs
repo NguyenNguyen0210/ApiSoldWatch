@@ -4,11 +4,11 @@ namespace ShopNN.Services.Interface
 {
     public interface IProductService
     {
-        Task<List<Product>> GetAllAsync();
-        Task<Product?> GetByIdAsync(Guid id);
+        Task<List<ProductResponseDTO>> GetAllAsync();
+        Task<ProductResponseDTO?> GetByIdAsync(Guid id);
 
-        Task<Product> CreateAsync(ProductDTO dto);
-        Task<Product> UpdateAsync(Guid id, ProductDTO dto);
+        Task<ProductResponseDTO> CreateAsync(ProductRequestDTO dto);
+        Task<ProductResponseDTO> UpdateAsync(Guid id, ProductRequestDTO dto);
         Task<bool> DeleteAsync(Guid id);
     }
 }

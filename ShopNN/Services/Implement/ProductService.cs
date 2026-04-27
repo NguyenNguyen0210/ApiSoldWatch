@@ -8,71 +8,103 @@ namespace ShopNN.Services.Implement
     public class ProductService : IProductService
     {
         private readonly ApplicationDbContext _context;
+
         public ProductService(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public async Task<Product> CreateAsync(ProductDTO dto)
+        // =========================
+        // CREATE
+        // =========================
+        public async Task<ProductResponseDTO> CreateAsync(ProductRequestDTO dto)
         {
-            Product product = new Product()
+            var product = new Product
             {
-                Name = dto.Name,
-                Price = dto.Price,
-                Stock = dto.Stock,
-                Description = dto.Description,
                 Id = Guid.NewGuid(),
+                Name = dto.Name,
+                Description = dto.Description,
+                Price = dto.Price,
+                Stock = dto.Stock
             };
 
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
-            return product;
 
-
+            return MapToDTO(product);
         }
 
+        // =========================
+        // DELETE
+        // =========================
         public async Task<bool> DeleteAsync(Guid id)
         {
-            Product product = await _context.Products.FirstOrDefaultAsync(x => x.Id ==id);
-            if (product != null)
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+                return false;
+
+            _context.Products.Remove(product);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        // =========================
+        // GET ALL
+        // =========================
+        public async Task<List<ProductResponseDTO>> GetAllAsync()
+        {
+            var products = await _context.Products
+                .AsNoTracking()
+                .ToListAsync();
+
+            return products.Select(MapToDTO).ToList();
+        }
+
+        // =========================
+        // GET BY ID
+        // =========================
+        public async Task<ProductResponseDTO?> GetByIdAsync(Guid id)
+        {
+            var product = await _context.Products
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            return product == null ? null : MapToDTO(product);
+        }
+
+        // =========================
+        // UPDATE
+        // =========================
+        public async Task<ProductResponseDTO?> UpdateAsync(Guid id, ProductRequestDTO dto)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+                return null;
+
+            product.Name = dto.Name;
+            product.Description = dto.Description;
+            product.Price = dto.Price;
+            product.Stock = dto.Stock;
+
+            await _context.SaveChangesAsync();
+
+            return MapToDTO(product);
+        }
+
+        // =========================
+        // MAPPING
+        // =========================
+        private static ProductResponseDTO MapToDTO(Product p)
+        {
+            return new ProductResponseDTO
             {
-                _context.Products.Remove(product);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            return false;
-
-
-        }
-
-        public async Task<List<Product>> GetAllAsync()
-        {
-            List<Product> products = await _context.Products.ToListAsync();
-            return products;
-        }
-
-        public async Task<Product?> GetByIdAsync(Guid id)
-        {
-            Product product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
-            if (product != null)
-            {
-                return product;
-            }
-            return null;
-        }
-
-        public async Task<Product> UpdateAsync(Guid id, ProductDTO dto)
-        {
-            Product product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
-            if (product != null) {
-                product.Name = dto.Name;
-                product.Description = dto.Description;
-                product.Price = dto.Price;
-                product.Stock = dto.Stock;
-                await _context.SaveChangesAsync();
-                return product;
-            }
-            return null;
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                Stock = p.Stock
+            };
         }
     }
 }
