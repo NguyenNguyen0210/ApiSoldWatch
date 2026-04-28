@@ -78,7 +78,7 @@ namespace ShopNN.Services.Implement
                 .FirstOrDefaultAsync(x => x.Token == refreshToken);
 
             if (token == null)
-                throw new Exception("Refresh token not found");
+                throw new SecurityTokenException("Refresh token not found");
 
             token.IsRevoked = true;
 
@@ -92,7 +92,7 @@ namespace ShopNN.Services.Implement
                 .FirstOrDefaultAsync(x => x.Token == refreshtoken);
 
 
-            if (existing == null || existing.IsRevoked || existing.ExpiryDate < DateTime.UtcNow) throw new Exception("Invalid or expired refresh token.");
+            if (existing == null || existing.IsRevoked || existing.ExpiryDate < DateTime.UtcNow) throw new SecurityTokenException("Invalid or expired refresh token.");
             ApplicationUser? user = await _userManager.FindByIdAsync(existing.UserId.ToString());
             if (user == null) throw new Exception("User not found");
 

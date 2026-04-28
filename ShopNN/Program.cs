@@ -64,7 +64,7 @@ builder.Services.AddAuthentication(options =>
         {
             context.HandleResponse();
             context.Response.StatusCode = 401;
-            return context.Response.WriteAsync("Token không hợp lệ");
+            return context.Response.WriteAsync("Invalid Token");
         }
     };
 });

@@ -8,8 +8,10 @@ namespace ShopNN.Services.Interface
     {
         Task<IdentityResult> SignUp(SignUpDTO dto);
         Task<TokenResponseDTO> SignIn(SignInDTO dto);
-
+        Task SignOut(RefreshTokenRequestDTO request);
         Task<TokenResponseDTO> RefreshToken(RefreshTokenRequestDTO request);
+        Task<ApplicationUser> FindByUserId(string userId);
+
 
 
     }

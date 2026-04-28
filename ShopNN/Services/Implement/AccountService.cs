@@ -79,5 +79,18 @@ namespace ShopNN.Services.Implement
             return tokenRespone;
 
         }
+
+        public async Task SignOut(RefreshTokenRequestDTO refreshToken)
+        {
+            await _authService.Revoke(refreshToken.Token);
+
+        }
+
+        public async Task<ApplicationUser> FindByUserId(string userId)
+        {
+            var profile = await _userManager.FindByIdAsync(userId);
+            if(profile == null) return null;
+            return profile;
+        }
     }
 }
