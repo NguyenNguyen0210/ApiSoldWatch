@@ -15,9 +15,6 @@ namespace ShopNN.Controllers
             _accountService = accountService;
         }
 
-        // =========================
-        // SIGN UP
-        // =========================
         [HttpPost("signup")]
         public async Task<IActionResult> SignUp([FromBody] SignUpDTO dto)
         {
@@ -39,30 +36,44 @@ namespace ShopNN.Controllers
             });
         }
 
-        // =========================
-        // SIGN IN
-        // =========================
         [HttpPost("signin")]
         public async Task<IActionResult> SignIn([FromBody] SignInDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-
-            var (accessToken, refreshToken) = await _accountService.SignIn(dto);
-
-            if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
+            try
             {
-                return Unauthorized(new
+                var tokenResponse = await _accountService.SignIn(dto);
+                return Ok(new
                 {
-                    message = "Invalid username or password"
+                    tokenResponse.accessToken,
+                    tokenResponse.refreshToken
                 });
             }
+            catch (Exception ex) { 
+                return BadRequest(ex.Message
+                    
+                    );
+            }
 
-            return Ok(new
+        }
+
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO dto)
+        {
+            try
             {
-                accessToken,
-                refreshToken
-            });
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var response = await _accountService.RefreshToken(dto);
+                return Ok(response);
+            }
+            catch (Exception ex) { 
+                return BadRequest(ex.Message);
+            }
+
         }
     }
 }

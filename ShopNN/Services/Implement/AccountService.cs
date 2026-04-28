@@ -21,32 +21,22 @@ namespace ShopNN.Services.Implement
             _roleManager = roleManager;
         }
 
-        // =========================
-        // SIGN IN
-        // =========================
-        public async Task<(string accessToken, string refreshToken)> SignIn(SignInDTO dto)
+        public async Task<TokenResponseDTO> SignIn(SignInDTO dto)
         {
             var user = await _userManager.FindByNameAsync(dto.Username);
 
             if (user == null)
-                return (string.Empty, string.Empty);
+                throw new Exception("User not found");
 
             var valid = await _userManager.CheckPasswordAsync(user, dto.Password);
 
             if (!valid)
-                return (string.Empty, string.Empty);
+                throw new Exception("Password Incorrect");
+            var token = await _authService.GenerateTokenAsync(user);
 
-            var accessToken = await _authService.GenerateAccessTokenAsync(user);
-            var refreshToken = await _authService.GenerateRefreshTokenAsync();
-
-            await _authService.SaveRefreshTokenAsync(refreshToken, user);
-
-            return (accessToken, refreshToken);
+            return token;
         }
 
-        // =========================
-        // SIGN UP
-        // =========================
         public async Task<IdentityResult> SignUp(SignUpDTO dto)
         {
             var user = new ApplicationUser
@@ -60,7 +50,6 @@ namespace ShopNN.Services.Implement
             if (!result.Succeeded)
                 return result;
 
-            // 🔥 đảm bảo role tồn tại
             if (!await _roleManager.RoleExistsAsync("User"))
             {
                 var roleResult = await _roleManager.CreateAsync(new ApplicationRole
@@ -75,13 +64,20 @@ namespace ShopNN.Services.Implement
                     });
             }
 
-            // 🔥 add role
             var addRoleResult = await _userManager.AddToRoleAsync(user, "User");
 
             if (!addRoleResult.Succeeded)
                 return addRoleResult;
 
             return result;
+        }
+
+
+        public async Task<TokenResponseDTO> RefreshToken(RefreshTokenRequestDTO request)
+        {
+            var tokenRespone = await _authService.RefreshToken(request.Token);
+            return tokenRespone;
+
         }
     }
 }

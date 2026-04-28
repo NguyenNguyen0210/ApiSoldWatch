@@ -7,7 +7,9 @@ namespace ShopNN.Services.Interface
     public interface IAccountService
     {
         Task<IdentityResult> SignUp(SignUpDTO dto);
-        Task<(string accessToken, string refreshToken)> SignIn(SignInDTO dto);
+        Task<TokenResponseDTO> SignIn(SignInDTO dto);
+
+        Task<TokenResponseDTO> RefreshToken(RefreshTokenRequestDTO request);
 
 
     }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShopNN.Entities;
 
@@ -11,9 +12,11 @@ using ShopNN.Entities;
 namespace ShopNN.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260427045355_updateRefrehToken")]
+    partial class updateRefrehToken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -343,15 +346,15 @@ namespace ShopNN.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "9cffd9e3-12e3-4675-af92-b6c6654d7c7f",
+                            ConcurrencyStamp = "3d138719-ee57-44da-9a20-6571ee74c997",
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEKyjlO/4c0nM3ctR4KNWVXH6RMUUSBXd7X1Ck7PK2csb7knJnDkanKU8Z52NoG2Jlw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEEgKnuzImpTtxv8cPnmtKUxflbXbg1wHdTJWPpysMg/k6rsu8HgvXgwGXWUGuk+Ldw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "4a6272c2-b394-409b-b9f8-463be5650dcb",
+                            SecurityStamp = "b4040e0a-7721-4e2c-90de-d2cea8a7b1c3",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
@@ -373,6 +376,10 @@ namespace ShopNN.Migrations
 
                     b.Property<bool>("IsRevoked")
                         .HasColumnType("bit");
+
+                    b.Property<string>("ReplacedByToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Token")
                         .IsRequired()

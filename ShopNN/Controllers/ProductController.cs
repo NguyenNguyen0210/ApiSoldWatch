@@ -16,9 +16,7 @@ namespace ShopNN.Controllers
             _productService = productService;
         }
 
-        // =========================
-        // CREATE (ADMIN)
-        // =========================
+
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ProductRequestDTO dto)
@@ -31,9 +29,6 @@ namespace ShopNN.Controllers
             return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
         }
 
-        // =========================
-        // GET ALL
-        // =========================
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -41,9 +36,6 @@ namespace ShopNN.Controllers
             return Ok(products);
         }
 
-        // =========================
-        // GET BY ID
-        // =========================
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -55,9 +47,6 @@ namespace ShopNN.Controllers
             return Ok(product);
         }
 
-        // =========================
-        // UPDATE (ADMIN)
-        // =========================
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] ProductRequestDTO dto)
@@ -73,9 +62,6 @@ namespace ShopNN.Controllers
             return Ok(product);
         }
 
-        // =========================
-        // DELETE (ADMIN)
-        // =========================
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
@@ -85,7 +71,7 @@ namespace ShopNN.Controllers
             if (!deleted)
                 return NotFound(new { message = "Product not found" });
 
-            return NoContent(); // 🔥 chuẩn REST
+            return NoContent(); 
         }
     }
 }

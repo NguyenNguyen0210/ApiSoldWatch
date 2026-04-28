@@ -8,7 +8,7 @@ namespace ShopNN.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // 🔥 yêu cầu login cho toàn bộ controller
+    [Authorize] 
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
@@ -18,9 +18,6 @@ namespace ShopNN.Controllers
             _orderService = orderService;
         }
 
-        // =========================
-        // CREATE ORDER
-        // =========================
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] List<OrderItemDTO> items)
         {
@@ -36,9 +33,6 @@ namespace ShopNN.Controllers
             return Ok(result);
         }
 
-        // =========================
-        // MY ORDERS
-        // =========================
         [HttpGet]
         public async Task<IActionResult> GetMyOrders()
         {
@@ -51,9 +45,7 @@ namespace ShopNN.Controllers
             return Ok(orders);
         }
 
-        // =========================
-        // ADMIN
-        // =========================
+
         [Authorize(Roles = "Admin")]
         [HttpGet("all")]
         public async Task<IActionResult> GetAll()
@@ -62,9 +54,7 @@ namespace ShopNN.Controllers
             return Ok(result);
         }
 
-        // =========================
-        // HELPER
-        // =========================
+
         private Guid? GetUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
