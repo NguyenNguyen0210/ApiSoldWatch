@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShopNN.DTOs;
 using ShopNN.Services.Interface;
@@ -22,18 +22,18 @@ namespace ShopNN.Controllers
         public async Task<IActionResult> Create([FromBody] ProductRequestDTO dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
 
             var product = await _productService.CreateAsync(dto);
 
-            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, ApiResponse<ProductResponseDTO>.SuccessResult(product, "Product created"));
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var products = await _productService.GetAllAsync();
-            return Ok(products);
+            return Ok(ApiResponse<List<ProductResponseDTO>>.SuccessResult(products, "Products retrieved"));
         }
 
         [HttpGet("{id}")]
@@ -42,9 +42,9 @@ namespace ShopNN.Controllers
             var product = await _productService.GetByIdAsync(id);
 
             if (product == null)
-                return NotFound(new { message = "Product not found" });
+                return NotFound(ApiResponse.FailureResult("Product not found"));
 
-            return Ok(product);
+            return Ok(ApiResponse<ProductResponseDTO>.SuccessResult(product, "Product retrieved"));
         }
 
         [Authorize(Roles = "Admin")]
@@ -52,14 +52,14 @@ namespace ShopNN.Controllers
         public async Task<IActionResult> Update(Guid id, [FromBody] ProductRequestDTO dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
 
             var product = await _productService.UpdateAsync(id, dto);
 
             if (product == null)
-                return NotFound(new { message = "Product not found" });
+                return NotFound(ApiResponse.FailureResult("Product not found"));
 
-            return Ok(product);
+            return Ok(ApiResponse<ProductResponseDTO>.SuccessResult(product, "Product updated"));
         }
 
         [Authorize(Roles = "Admin")]
@@ -69,9 +69,9 @@ namespace ShopNN.Controllers
             var deleted = await _productService.DeleteAsync(id);
 
             if (!deleted)
-                return NotFound(new { message = "Product not found" });
+                return NotFound(ApiResponse.FailureResult("Product not found"));
 
-            return NoContent(); 
+            return Ok(ApiResponse.SuccessResult("Product deleted"));
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShopNN.Entities;
 
@@ -11,9 +12,11 @@ using ShopNN.Entities;
 namespace ShopNN.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260504152448_AddCategoryAndCartV2")]
+    partial class AddCategoryAndCartV2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -292,15 +295,15 @@ namespace ShopNN.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "495c7dfc-e814-4d79-9ce8-100977c075de",
+                            ConcurrencyStamp = "9964129a-bbb3-49b4-a9e6-25996f5c2399",
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEO3T0nZCV1Wr4FPzOUeXNHu80zVNTU51CmD0vDMnHGRGzYtHkiNiJgV9OjhOmZMolg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEF9S3HPcUm/rxVSZ/RGSZ8PD7+aNv9jWg/9eQkeAZXf+Gs5iKkgvpwPLmm/yai7PiA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "52a1de7a-952a-4508-ba6d-e4a65890923b",
+                            SecurityStamp = "c5e7658d-2ced-4c86-a08f-aa11e4b2d9ee",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
@@ -370,23 +373,8 @@ namespace ShopNN.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("c1111111-1111-1111-1111-111111111111"),
-                            Name = "Luxury Watches"
-                        },
-                        new
-                        {
-                            Id = new Guid("c2222222-2222-2222-2222-222222222222"),
-                            Name = "Sport Watches"
-                        },
-                        new
-                        {
-                            Id = new Guid("c3333333-3333-3333-3333-333333333333"),
-                            Name = "Smart Watches"
-                        },
-                        new
-                        {
-                            Id = new Guid("c4444444-4444-4444-4444-444444444444"),
-                            Name = "Classic Watches"
+                            Id = new Guid("dddddddd-4444-4444-4444-444444444444"),
+                            Name = "Default"
                         });
                 });
 
@@ -422,102 +410,30 @@ namespace ShopNN.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("f6284c3d-41c1-4b2f-ad69-c031eb664d62"),
-                            CategoryId = new Guid("c1111111-1111-1111-1111-111111111111"),
-                            Description = "18ct yellow gold, President bracelet",
-                            Name = "Rolex Day-Date 40",
-                            Price = 38000m,
-                            Stock = 3
+                            Id = new Guid("aaaaaaaa-1111-1111-1111-111111111111"),
+                            CategoryId = new Guid("dddddddd-4444-4444-4444-444444444444"),
+                            Description = "Luxury diving watch",
+                            Name = "Rolex Submariner",
+                            Price = 15000m,
+                            Stock = 5
                         },
                         new
                         {
-                            Id = new Guid("e0966b76-54fd-4e15-a597-c69b0d12fdbb"),
-                            CategoryId = new Guid("c1111111-1111-1111-1111-111111111111"),
-                            Description = "Steel blue dial, luxury sports watch",
-                            Name = "Patek Philippe Nautilus",
-                            Price = 120000m,
-                            Stock = 1
-                        },
-                        new
-                        {
-                            Id = new Guid("ec8164f0-8f21-4308-8c22-c02ae07c1ed7"),
-                            CategoryId = new Guid("c1111111-1111-1111-1111-111111111111"),
-                            Description = "Selfwinding 'Jumbo' Extra-thin",
-                            Name = "Audemars Piguet Royal Oak",
-                            Price = 75000m,
-                            Stock = 2
-                        },
-                        new
-                        {
-                            Id = new Guid("e103fa5b-043b-4583-9bea-b21dbbe5e34b"),
-                            CategoryId = new Guid("c2222222-2222-2222-2222-222222222222"),
-                            Description = "Carbon Core Guard, Triple Sensor",
-                            Name = "Casio G-Shock Mudmaster",
-                            Price = 850m,
-                            Stock = 20
-                        },
-                        new
-                        {
-                            Id = new Guid("302807c9-f6ad-44c1-99e8-e8414446d76f"),
-                            CategoryId = new Guid("c2222222-2222-2222-2222-222222222222"),
-                            Description = "Automatic diver's watch 200m",
-                            Name = "Seiko Prospex 'Turtle'",
-                            Price = 550m,
-                            Stock = 15
-                        },
-                        new
-                        {
-                            Id = new Guid("cba671e5-f0af-4f9a-9748-1e9b4f8534f7"),
-                            CategoryId = new Guid("c2222222-2222-2222-2222-222222222222"),
-                            Description = "Solar powered multisport GPS watch",
-                            Name = "Garmin Fenix 7X",
-                            Price = 999m,
+                            Id = new Guid("bbbbbbbb-2222-2222-2222-222222222222"),
+                            CategoryId = new Guid("dddddddd-4444-4444-4444-444444444444"),
+                            Description = "Moonwatch легендарный",
+                            Name = "Omega Speedmaster",
+                            Price = 8000m,
                             Stock = 10
                         },
                         new
                         {
-                            Id = new Guid("da8ca88d-edc9-45c9-a4ff-3e8fb6213ac5"),
-                            CategoryId = new Guid("c3333333-3333-3333-3333-333333333333"),
-                            Description = "Rugged and capable, with GPS + Cellular",
-                            Name = "Apple Watch Ultra 2",
-                            Price = 799m,
-                            Stock = 25
-                        },
-                        new
-                        {
-                            Id = new Guid("01e75c1a-40e0-46b5-98a0-3e229dba0938"),
-                            CategoryId = new Guid("c3333333-3333-3333-3333-333333333333"),
-                            Description = "Advanced sleep tracking and wellness",
-                            Name = "Samsung Galaxy Watch 6",
-                            Price = 350m,
-                            Stock = 30
-                        },
-                        new
-                        {
-                            Id = new Guid("86686242-5666-4f3a-b20b-7afa9991f70d"),
-                            CategoryId = new Guid("c4444444-4444-4444-4444-444444444444"),
-                            Description = "Elegant moonphase automatic watch",
-                            Name = "Longines Master Collection",
-                            Price = 2500m,
-                            Stock = 8
-                        },
-                        new
-                        {
-                            Id = new Guid("36a25b9c-b5bf-43b8-ad58-b6c2795ad1aa"),
-                            CategoryId = new Guid("c4444444-4444-4444-4444-444444444444"),
-                            Description = "Traditional swiss automatic watch",
-                            Name = "Tissot Le Locle",
-                            Price = 650m,
-                            Stock = 12
-                        },
-                        new
-                        {
-                            Id = new Guid("315877a7-2ee0-4449-88aa-52f8daf2029a"),
-                            CategoryId = new Guid("c4444444-4444-4444-4444-444444444444"),
-                            Description = "Open heart dial, stainless steel",
-                            Name = "Hamilton Jazzmaster",
-                            Price = 950m,
-                            Stock = 7
+                            Id = new Guid("cccccccc-3333-3333-3333-333333333333"),
+                            CategoryId = new Guid("dddddddd-4444-4444-4444-444444444444"),
+                            Description = "Durable sport watch",
+                            Name = "Casio G-Shock",
+                            Price = 150m,
+                            Stock = 50
                         });
                 });
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 
 namespace ShopNN.Entities
 {
@@ -6,5 +6,6 @@ namespace ShopNN.Entities
 
     {
         public List<Order> Orders { get; set; } = new();
+        public Cart Cart { get; set; }
     }
 }

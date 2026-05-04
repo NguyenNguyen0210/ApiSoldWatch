@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ShopNN.DTOs;
 using ShopNN.Entities;
 using ShopNN.Services.Interface;
@@ -55,6 +55,7 @@ namespace ShopNN.Services.Implement
         public async Task<List<ProductResponseDTO>> GetAllAsync()
         {
             var products = await _context.Products
+                .Include(p => p.Category)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -67,6 +68,7 @@ namespace ShopNN.Services.Implement
         public async Task<ProductResponseDTO?> GetByIdAsync(Guid id)
         {
             var product = await _context.Products
+                .Include(p => p.Category)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -103,7 +105,9 @@ namespace ShopNN.Services.Implement
                 Name = p.Name,
                 Description = p.Description,
                 Price = p.Price,
-                Stock = p.Stock
+                Stock = p.Stock,
+                CategoryId = p.CategoryId,
+                CategoryName = p.Category?.Name
             };
         }
     }

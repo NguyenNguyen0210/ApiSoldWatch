@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 namespace ShopNN.Entities
@@ -12,39 +12,24 @@ namespace ShopNN.Entities
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> Items { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
         protected override void OnModelCreating(ModelBuilder model)
         {
             base.OnModelCreating(model);
 
-            // ===== FIXED GUID =====
+            // ===== ROLES & ADMIN =====
             var adminRoleId = Guid.Parse("11111111-1111-1111-1111-111111111111");
             var userRoleId = Guid.Parse("22222222-2222-2222-2222-222222222222");
-
             var adminUserId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
 
-            var p1 = Guid.Parse("aaaaaaaa-1111-1111-1111-111111111111");
-            var p2 = Guid.Parse("bbbbbbbb-2222-2222-2222-222222222222");
-            var p3 = Guid.Parse("cccccccc-3333-3333-3333-333333333333");
-
-            // ===== ROLE =====
             model.Entity<ApplicationRole>().HasData(
-                new ApplicationRole
-                {
-                    Id = adminRoleId,
-                    Name = "Admin",
-                    NormalizedName = "ADMIN"
-                },
-                new ApplicationRole
-                {
-                    Id = userRoleId,
-                    Name = "User",
-                    NormalizedName = "USER"
-                }
+                new ApplicationRole { Id = adminRoleId, Name = "Admin", NormalizedName = "ADMIN" },
+                new ApplicationRole { Id = userRoleId, Name = "User", NormalizedName = "USER" }
             );
 
-            // ===== ADMIN USER =====
             var hasher = new PasswordHasher<ApplicationUser>();
-
             var adminUser = new ApplicationUser
             {
                 Id = adminUserId,
@@ -55,46 +40,48 @@ namespace ShopNN.Entities
                 EmailConfirmed = true,
                 SecurityStamp = Guid.NewGuid().ToString()
             };
-
             adminUser.PasswordHash = hasher.HashPassword(adminUser, "Admin@123");
 
             model.Entity<ApplicationUser>().HasData(adminUser);
 
-            // ===== USER ROLE MAPPING =====
             model.Entity<IdentityUserRole<Guid>>().HasData(
-                new IdentityUserRole<Guid>
-                {
-                    UserId = adminUserId,
-                    RoleId = adminRoleId
-                }
+                new IdentityUserRole<Guid> { UserId = adminUserId, RoleId = adminRoleId }
             );
 
-            // ===== PRODUCTS (WATCH) =====
+            // ===== CATEGORY GUIDS =====
+            var catLuxuryId = Guid.Parse("c1111111-1111-1111-1111-111111111111");
+            var catSportId = Guid.Parse("c2222222-2222-2222-2222-222222222222");
+            var catSmartId = Guid.Parse("c3333333-3333-3333-3333-333333333333");
+            var catClassicId = Guid.Parse("c4444444-4444-4444-4444-444444444444");
+
+            // ===== CATEGORY SEED =====
+            model.Entity<Category>().HasData(
+                new Category { Id = catLuxuryId, Name = "Luxury Watches" },
+                new Category { Id = catSportId, Name = "Sport Watches" },
+                new Category { Id = catSmartId, Name = "Smart Watches" },
+                new Category { Id = catClassicId, Name = "Classic Watches" }
+            );
+
+            // ===== PRODUCT SEED =====
             model.Entity<Product>().HasData(
-                new Product
-                {
-                    Id = p1,
-                    Name = "Rolex Submariner",
-                    Description = "Luxury diving watch",
-                    Price = 15000,
-                    Stock = 5
-                },
-                new Product
-                {
-                    Id = p2,
-                    Name = "Omega Speedmaster",
-                    Description = "Moonwatch легендарный",
-                    Price = 8000,
-                    Stock = 10
-                },
-                new Product
-                {
-                    Id = p3,
-                    Name = "Casio G-Shock",
-                    Description = "Durable sport watch",
-                    Price = 150,
-                    Stock = 50
-                }
+                // Luxury
+                new Product { Id = Guid.NewGuid(), Name = "Rolex Day-Date 40", Description = "18ct yellow gold, President bracelet", Price = 38000, Stock = 3, CategoryId = catLuxuryId },
+                new Product { Id = Guid.NewGuid(), Name = "Patek Philippe Nautilus", Description = "Steel blue dial, luxury sports watch", Price = 120000, Stock = 1, CategoryId = catLuxuryId },
+                new Product { Id = Guid.NewGuid(), Name = "Audemars Piguet Royal Oak", Description = "Selfwinding 'Jumbo' Extra-thin", Price = 75000, Stock = 2, CategoryId = catLuxuryId },
+
+                // Sport
+                new Product { Id = Guid.NewGuid(), Name = "Casio G-Shock Mudmaster", Description = "Carbon Core Guard, Triple Sensor", Price = 850, Stock = 20, CategoryId = catSportId },
+                new Product { Id = Guid.NewGuid(), Name = "Seiko Prospex 'Turtle'", Description = "Automatic diver's watch 200m", Price = 550, Stock = 15, CategoryId = catSportId },
+                new Product { Id = Guid.NewGuid(), Name = "Garmin Fenix 7X", Description = "Solar powered multisport GPS watch", Price = 999, Stock = 10, CategoryId = catSportId },
+
+                // Smart
+                new Product { Id = Guid.NewGuid(), Name = "Apple Watch Ultra 2", Description = "Rugged and capable, with GPS + Cellular", Price = 799, Stock = 25, CategoryId = catSmartId },
+                new Product { Id = Guid.NewGuid(), Name = "Samsung Galaxy Watch 6", Description = "Advanced sleep tracking and wellness", Price = 350, Stock = 30, CategoryId = catSmartId },
+
+                // Classic
+                new Product { Id = Guid.NewGuid(), Name = "Longines Master Collection", Description = "Elegant moonphase automatic watch", Price = 2500, Stock = 8, CategoryId = catClassicId },
+                new Product { Id = Guid.NewGuid(), Name = "Tissot Le Locle", Description = "Traditional swiss automatic watch", Price = 650, Stock = 12, CategoryId = catClassicId },
+                new Product { Id = Guid.NewGuid(), Name = "Hamilton Jazzmaster", Description = "Open heart dial, stainless steel", Price = 950, Stock = 7, CategoryId = catClassicId }
             );
             model.Entity<Order>()
      .HasOne(o => o.User)
@@ -139,6 +126,42 @@ namespace ShopNN.Entities
     .WithMany()   // cần có navigation bên User
     .HasForeignKey(rt => rt.UserId)
     .OnDelete(DeleteBehavior.Cascade);
+
+            // =========================
+            // PRODUCT - CATEGORY (1 - N)
+            // =========================
+            model.Entity<Product>()
+                .HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // =========================
+            // CART - USER (1 - 1)
+            // =========================
+            model.Entity<Cart>()
+                .HasOne(c => c.User)
+                .WithOne(u => u.Cart)
+                .HasForeignKey<Cart>(c => c.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // =========================
+            // CARTITEM - CART (1 - N)
+            // =========================
+            model.Entity<CartItem>()
+                .HasOne(ci => ci.Cart)
+                .WithMany(c => c.Items)
+                .HasForeignKey(ci => ci.CartId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // =========================
+            // CARTITEM - PRODUCT (1 - N)
+            // =========================
+            model.Entity<CartItem>()
+                .HasOne(ci => ci.Product)
+                .WithMany()
+                .HasForeignKey(ci => ci.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
