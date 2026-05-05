@@ -18,7 +18,7 @@ namespace ShopNN.Services.Implement
             _mapper = mapper;
         }
 
-        public async Task<OrderDTO> CreateOrderAsync(Guid userId)
+        public async Task<OrderDTO> CreateOrderAsync(Guid userId, PaymentMethod paymentMethod)
         {
             // 1. Get user's cart
             var cart = await _context.Carts
@@ -39,6 +39,9 @@ namespace ShopNN.Services.Implement
                     UserId = userId,
                     CreatedAt = DateTime.UtcNow,
                     TotalAmount = 0,
+                    Status = OrderStatus.Pending,
+                    PaymentMethod = paymentMethod,
+                    PaymentStatus = PaymentStatus.Unpaid, // Default
                     Items = new List<OrderItem>()
                 };
 

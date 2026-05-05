@@ -9,6 +9,22 @@ public enum OrderStatus
     Cancelled
 }
 
+public enum PaymentMethod
+{
+    COD,
+    VnPay,
+    Momo,
+    BankTransfer
+}
+
+public enum PaymentStatus
+{
+    Unpaid,
+    Paid,
+    Failed,
+    Refunded
+}
+
 public class Order
 {
     public Guid Id { get; set; }
@@ -19,6 +35,10 @@ public class Order
     public DateTime CreatedAt { get; set; }
     public decimal TotalAmount { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
+
+    // Payment Information
+    public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.COD;
+    public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Unpaid;
 
     public List<OrderItem> Items { get; set; } = new();
 }

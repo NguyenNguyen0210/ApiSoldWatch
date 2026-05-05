@@ -21,13 +21,16 @@ namespace ShopNN.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrder()
+        public async Task<IActionResult> CreateOrder([FromBody] CheckoutRequestDTO request)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+
             var userId = GetUserId();
             if (userId == null)
                 throw new UnauthorizedException("Invalid token");
 
-            var result = await _orderService.CreateOrderAsync(userId.Value);
+            var result = await _orderService.CreateOrderAsync(userId.Value, request.PaymentMethod);
             return Ok(ApiResponse<OrderDTO>.SuccessResult(result, "Order created successfully"));
         }
 

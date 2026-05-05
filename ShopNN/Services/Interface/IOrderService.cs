@@ -4,7 +4,7 @@ namespace ShopNN.Services.Interface
 {
     public interface IOrderService
     {
-        Task<OrderDTO> CreateOrderAsync(Guid userId);
+        Task<OrderDTO> CreateOrderAsync(Guid userId, PaymentMethod paymentMethod);
 
         Task<List<OrderDTO>> GetMyOrdersAsync(Guid userId);
 
