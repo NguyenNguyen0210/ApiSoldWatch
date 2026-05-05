@@ -526,3 +526,9 @@ ShopNN.Exceptions.BadRequestException: Your cart is empty
 2026-05-05 12:16:20.336 +07:00 [INF] HTTP POST /api/cart/items responded 400 in 126.5035 ms
 2026-05-05 12:16:56.389 +07:00 [INF] HTTP POST /api/cart/items responded 400 in 24.3976 ms
 2026-05-05 12:18:29.481 +07:00 [INF] HTTP GET /weatherforecast responded 404 in 103.3537 ms
+2026-05-05 12:39:51.232 +07:00 [INF] HTTP GET /weatherforecast responded 404 in 3211.4235 ms
+2026-05-05 12:41:11.019 +07:00 [INF] HTTP POST /api/cart/items responded 400 in 5593.5366 ms
+2026-05-05 12:44:52.682 +07:00 [INF] HTTP POST /api/cart/items responded 401 in 141.0642 ms
+2026-05-05 12:45:18.213 +07:00 [INF] HTTP POST /api/Account/refresh responded 200 in 3493.2181 ms
+2026-05-05 12:46:13.655 +07:00 [INF] HTTP POST /api/cart/items responded 400 in 364.3166 ms
+2026-05-05 12:58:01.218 +07:00 [INF] HTTP POST /api/cart/items responded 400 in 264163.9678 ms

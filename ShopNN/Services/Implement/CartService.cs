@@ -18,16 +18,27 @@ namespace ShopNN.Services.Implement
             _mapper = mapper;
         }
 
-        private async Task<Cart> GetOrCreateCartAsync(Guid userId)
+        // Tối ưu: Hàm lấy giỏ hàng chuẩn, tích hợp sẵn Create nếu chưa có
+        private async Task<Cart> GetActiveCartAsync(Guid userId, bool includeProducts = false)
         {
-            var cart = await _context.Carts
-                .Include(c => c.Items)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
+            var query = _context.Carts.AsQueryable();
+            
+            if (includeProducts)
+            {
+                query = query.Include(c => c.Items).ThenInclude(i => i.Product);
+            }
+            else
+            {
+                query = query.Include(c => c.Items);
+            }
+
+            var cart = await query.FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null)
             {
-                cart = new Cart { Id = Guid.NewGuid(), UserId = userId };
+                cart = new Cart { Id = Guid.NewGuid(), UserId = userId, UpdatedAt = DateTime.UtcNow };
                 await _context.Carts.AddAsync(cart);
+                // Lưu ngay để đảm bảo có CartId cho các bước sau
                 await _context.SaveChangesAsync();
             }
 
@@ -36,24 +47,31 @@ namespace ShopNN.Services.Implement
 
         public async Task<CartDTO> GetCartByUserIdAsync(Guid userId)
         {
+            // Dùng AsNoTracking cho API chỉ đọc để tăng tốc
             var cart = await _context.Carts
+                .AsNoTracking()
                 .Include(c => c.Items)
                 .ThenInclude(i => i.Product)
-                .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
-            if (cart == null) return await GetCartByUserIdAsync(userId); // Fallback to create if not exists
-            
+            if (cart == null)
+            {
+                cart = await GetActiveCartAsync(userId, true);
+            }
+
             return _mapper.Map<CartDTO>(cart);
         }
 
         public async Task<CartDTO> AddItemToCartAsync(Guid userId, AddToCartDTO dto)
         {
-            var cart = await GetOrCreateCartAsync(userId);
+            // Lấy cart kèm Items để check tồn tại
+            var cart = await GetActiveCartAsync(userId);
             
-            // Check if product exists
-            var productExists = await _context.Products.AnyAsync(p => p.Id == dto.ProductId);
-            if (!productExists) throw new NotFoundException("Product not found");
+            var product = await _context.Products
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == dto.ProductId);
+                
+            if (product == null) throw new NotFoundException("Product not found");
 
             var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId);
 
@@ -63,26 +81,25 @@ namespace ShopNN.Services.Implement
             }
             else
             {
-                var newItem = new CartItem
+                cart.Items.Add(new CartItem
                 {
                     Id = Guid.NewGuid(),
                     CartId = cart.Id,
                     ProductId = dto.ProductId,
                     Quantity = dto.Quantity
-                };
-                cart.Items.Add(newItem);
+                });
             }
 
             cart.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            // Return current state
+            // Refresh lại để trả về DTO đầy đủ thông tin Product
             return await GetCartByUserIdAsync(userId);
         }
 
         public async Task<CartDTO> UpdateItemQuantityAsync(Guid userId, Guid cartItemId, UpdateCartItemDTO dto)
         {
-            var cart = await GetOrCreateCartAsync(userId);
+            var cart = await GetActiveCartAsync(userId);
             var item = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
 
             if (item == null) throw new NotFoundException("Cart item not found");
@@ -104,7 +121,7 @@ namespace ShopNN.Services.Implement
 
         public async Task<CartDTO> RemoveItemFromCartAsync(Guid userId, Guid cartItemId)
         {
-            var cart = await GetOrCreateCartAsync(userId);
+            var cart = await GetActiveCartAsync(userId);
             var item = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
 
             if (item != null)
