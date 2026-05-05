@@ -18,9 +18,8 @@ namespace ShopNN.Services.Implement
             _mapper = mapper;
         }
 
-        public async Task<OrderDTO> CreateOrderAsync(Guid userId, PaymentMethod paymentMethod)
+        public async Task<OrderResponseDTO> CreateOrderAsync(Guid userId, PaymentMethod paymentMethod)
         {
-            // 1. Get user's cart
             var cart = await _context.Carts
                 .Include(c => c.Items)
                 .ThenInclude(i => i.Product)
@@ -41,7 +40,7 @@ namespace ShopNN.Services.Implement
                     TotalAmount = 0,
                     Status = OrderStatus.Pending,
                     PaymentMethod = paymentMethod,
-                    PaymentStatus = PaymentStatus.Unpaid, // Default
+                    PaymentStatus = PaymentStatus.Unpaid,
                     Items = new List<OrderItem>()
                 };
 
@@ -54,7 +53,6 @@ namespace ShopNN.Services.Implement
                     if (product.Stock < cartItem.Quantity)
                         throw new BadRequestException($"Product '{product.Name}' does not have enough stock (Available: {product.Stock})");
 
-                    // Reduce stock
                     product.Stock -= cartItem.Quantity;
 
                     var orderItem = new OrderItem
@@ -70,24 +68,21 @@ namespace ShopNN.Services.Implement
                     order.TotalAmount += orderItem.UnitPrice * orderItem.Quantity;
                 }
 
-                // 2. Save Order
                 await _context.Orders.AddAsync(order);
 
-                // 3. Clear Cart
                 _context.CartItems.RemoveRange(cart.Items);
                 cart.UpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                // Reload order with product details for the DTO
                 var resultOrder = await _context.Orders
                     .Include(o => o.Items)
                     .ThenInclude(i => i.Product)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(o => o.Id == order.Id);
 
-                return _mapper.Map<OrderDTO>(resultOrder);
+                return _mapper.Map<OrderResponseDTO>(resultOrder);
             }
             catch
             {
@@ -96,7 +91,7 @@ namespace ShopNN.Services.Implement
             }
         }
 
-        public async Task<List<OrderDTO>> GetMyOrdersAsync(Guid userId)
+        public async Task<List<OrderResponseDTO>> GetMyOrdersAsync(Guid userId)
         {
             var orders = await _context.Orders
                 .Include(o => o.Items)
@@ -106,10 +101,10 @@ namespace ShopNN.Services.Implement
                 .AsNoTracking()
                 .ToListAsync();
 
-            return _mapper.Map<List<OrderDTO>>(orders);
+            return _mapper.Map<List<OrderResponseDTO>>(orders);
         }
 
-        public async Task<List<OrderDTO>> GetAllOrdersAsync()
+        public async Task<List<OrderResponseDTO>> GetAllOrdersAsync()
         {
             var orders = await _context.Orders
                 .Include(o => o.Items)
@@ -118,10 +113,10 @@ namespace ShopNN.Services.Implement
                 .AsNoTracking()
                 .ToListAsync();
 
-            return _mapper.Map<List<OrderDTO>>(orders);
+            return _mapper.Map<List<OrderResponseDTO>>(orders);
         }
 
-        public async Task<OrderDTO> UpdateStatusAsync(Guid orderId, OrderStatus status)
+        public async Task<OrderResponseDTO> UpdateStatusAsync(Guid orderId, OrderStatus status)
         {
             var order = await _context.Orders
                 .Include(o => o.Items)
@@ -134,7 +129,7 @@ namespace ShopNN.Services.Implement
             order.Status = status;
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<OrderDTO>(order);
+            return _mapper.Map<OrderResponseDTO>(order);
         }
     }
 }

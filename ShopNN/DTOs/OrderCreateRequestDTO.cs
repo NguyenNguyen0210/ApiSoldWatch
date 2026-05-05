@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ShopNN.DTOs
 {
-    public class CheckoutRequestDTO
+    public class OrderCreateRequestDTO
     {
         [Required]
         public PaymentMethod PaymentMethod { get; set; }

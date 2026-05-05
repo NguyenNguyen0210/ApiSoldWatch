@@ -18,7 +18,7 @@ namespace ShopNN.Services.Implement
             _mapper = mapper;
         }
 
-        public async Task<CategoryDTO> CreateAsync(CategoryRequestDTO dto)
+        public async Task<CategoryResponseDTO> CreateAsync(CategoryRequestDTO dto)
         {
             var category = _mapper.Map<Category>(dto);
             category.Id = Guid.NewGuid();
@@ -26,7 +26,7 @@ namespace ShopNN.Services.Implement
             await _context.Categories.AddAsync(category);
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<CategoryDTO>(category);
+            return _mapper.Map<CategoryResponseDTO>(category);
         }
 
         public async Task<bool> DeleteAsync(Guid id)
@@ -39,20 +39,20 @@ namespace ShopNN.Services.Implement
             return true;
         }
 
-        public async Task<List<CategoryDTO>> GetAllAsync()
+        public async Task<List<CategoryResponseDTO>> GetAllAsync()
         {
             var categories = await _context.Categories.AsNoTracking().ToListAsync();
-            return _mapper.Map<List<CategoryDTO>>(categories);
+            return _mapper.Map<List<CategoryResponseDTO>>(categories);
         }
 
-        public async Task<CategoryDTO> GetByIdAsync(Guid id)
+        public async Task<CategoryResponseDTO> GetByIdAsync(Guid id)
         {
             var category = await _context.Categories.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
             if (category == null) throw new NotFoundException("Category not found");
-            return _mapper.Map<CategoryDTO>(category);
+            return _mapper.Map<CategoryResponseDTO>(category);
         }
 
-        public async Task<CategoryDTO> UpdateAsync(Guid id, CategoryRequestDTO dto)
+        public async Task<CategoryResponseDTO> UpdateAsync(Guid id, CategoryRequestDTO dto)
         {
             var category = await _context.Categories.FindAsync(id);
             if (category == null) throw new NotFoundException("Category not found");
@@ -61,7 +61,7 @@ namespace ShopNN.Services.Implement
             
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<CategoryDTO>(category);
+            return _mapper.Map<CategoryResponseDTO>(category);
         }
     }
 }

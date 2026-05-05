@@ -5,12 +5,12 @@ namespace ShopNN.DTOs
     public class SignUpDTO
     {
         [Required]
-        public required string Username { get; set; }
+        public string Username { get; set; }
         [Required]
 
-        public required string Password { get; set; }
+        public string Password { get; set; }
         [Required]
         [EmailAddress]
-        public required string Email { get; set; }
+        public string Email { get; set; }
     }
 }

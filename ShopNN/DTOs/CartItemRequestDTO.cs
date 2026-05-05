@@ -2,15 +2,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ShopNN.DTOs
 {
-    public class OrderItemDTO
+    public class CartItemRequestDTO
     {
-        [Required]    
+        [Required]
         public Guid ProductId { get; set; }
         
-        public string? ProductName { get; set; }
-        public decimal UnitPrice { get; set; }
-
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1")]
         public int Quantity { get; set; }
     }
 }

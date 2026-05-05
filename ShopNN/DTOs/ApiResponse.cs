@@ -37,7 +37,6 @@ namespace ShopNN.DTOs
         }
     }
 
-    // Lớp bổ trợ cho các phản hồi không cần dữ liệu (Data)
     public class ApiResponse : ApiResponse<object>
     {
         public static ApiResponse SuccessResult(string? message = null)

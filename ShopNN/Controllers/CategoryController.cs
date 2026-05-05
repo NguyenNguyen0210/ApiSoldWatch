@@ -21,14 +21,14 @@ namespace ShopNN.Controllers
         public async Task<IActionResult> GetAll()
         {
             var categories = await _categoryService.GetAllAsync();
-            return Ok(ApiResponse<List<CategoryDTO>>.SuccessResult(categories, "Categories retrieved successfully"));
+            return Ok(ApiResponse<List<CategoryResponseDTO>>.SuccessResult(categories, "Categories retrieved successfully"));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var category = await _categoryService.GetByIdAsync(id);
-            return Ok(ApiResponse<CategoryDTO>.SuccessResult(category, "Category retrieved successfully"));
+            return Ok(ApiResponse<CategoryResponseDTO>.SuccessResult(category, "Category retrieved successfully"));
         }
 
         [Authorize(Roles = "Admin")]
@@ -37,7 +37,7 @@ namespace ShopNN.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
             var category = await _categoryService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = category.Id }, ApiResponse<CategoryDTO>.SuccessResult(category, "Category created successfully"));
+            return CreatedAtAction(nameof(GetById), new { id = category.Id }, ApiResponse<CategoryResponseDTO>.SuccessResult(category, "Category created successfully"));
         }
 
         [Authorize(Roles = "Admin")]
@@ -46,7 +46,7 @@ namespace ShopNN.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
             var category = await _categoryService.UpdateAsync(id, dto);
-            return Ok(ApiResponse<CategoryDTO>.SuccessResult(category, "Category updated successfully"));
+            return Ok(ApiResponse<CategoryResponseDTO>.SuccessResult(category, "Category updated successfully"));
         }
 
         [Authorize(Roles = "Admin")]

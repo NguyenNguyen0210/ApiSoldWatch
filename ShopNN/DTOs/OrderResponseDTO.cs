@@ -1,6 +1,6 @@
 namespace ShopNN.DTOs
 {
-    public class OrderDTO
+    public class OrderResponseDTO
     {
         public Guid Id { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -8,6 +8,7 @@ namespace ShopNN.DTOs
         public string Status { get; set; } = string.Empty;
         public string PaymentMethod { get; set; } = string.Empty;
         public string PaymentStatus { get; set; } = string.Empty;
-        public List<OrderItemDTO> Items { get; set; } = new();
+        public string? PaymentUrl { get; set; }
+        public List<OrderItemResponseDTO> Items { get; set; } = new();
     }
 }

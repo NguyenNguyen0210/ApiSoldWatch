@@ -4,10 +4,10 @@ namespace ShopNN.Services.Interface
 {
     public interface ICartService
     {
-        Task<CartDTO> GetCartByUserIdAsync(Guid userId);
-        Task<CartDTO> AddItemToCartAsync(Guid userId, AddToCartDTO dto);
-        Task<CartDTO> UpdateItemQuantityAsync(Guid userId, Guid cartItemId, UpdateCartItemDTO dto);
-        Task<CartDTO> RemoveItemFromCartAsync(Guid userId, Guid cartItemId);
+        Task<CartResponseDTO> GetCartByUserIdAsync(Guid userId);
+        Task<CartResponseDTO> AddItemToCartAsync(Guid userId, CartItemRequestDTO dto);
+        Task<CartResponseDTO> UpdateItemQuantityAsync(Guid userId, Guid cartItemId, CartItemUpdateDTO dto);
+        Task<CartResponseDTO> RemoveItemFromCartAsync(Guid userId, Guid cartItemId);
         Task<bool> ClearCartAsync(Guid userId);
     }
 }

@@ -18,7 +18,6 @@ namespace ShopNN.Services.Implement
             _mapper = mapper;
         }
 
-        // Tối ưu: Hàm lấy giỏ hàng chuẩn, tích hợp sẵn Create nếu chưa có
         private async Task<Cart> GetActiveCartAsync(Guid userId, bool includeProducts = false)
         {
             var query = _context.Carts.AsQueryable();
@@ -38,16 +37,14 @@ namespace ShopNN.Services.Implement
             {
                 cart = new Cart { Id = Guid.NewGuid(), UserId = userId, UpdatedAt = DateTime.UtcNow };
                 await _context.Carts.AddAsync(cart);
-                // Lưu ngay để đảm bảo có CartId cho các bước sau
                 await _context.SaveChangesAsync();
             }
 
             return cart;
         }
 
-        public async Task<CartDTO> GetCartByUserIdAsync(Guid userId)
+        public async Task<CartResponseDTO> GetCartByUserIdAsync(Guid userId)
         {
-            // Dùng AsNoTracking cho API chỉ đọc để tăng tốc
             var cart = await _context.Carts
                 .AsNoTracking()
                 .Include(c => c.Items)
@@ -59,12 +56,11 @@ namespace ShopNN.Services.Implement
                 cart = await GetActiveCartAsync(userId, true);
             }
 
-            return _mapper.Map<CartDTO>(cart);
+            return _mapper.Map<CartResponseDTO>(cart);
         }
 
-        public async Task<CartDTO> AddItemToCartAsync(Guid userId, AddToCartDTO dto)
+        public async Task<CartResponseDTO> AddItemToCartAsync(Guid userId, CartItemRequestDTO dto)
         {
-            // Lấy cart kèm Items để check tồn tại
             var cart = await GetActiveCartAsync(userId);
             
             var product = await _context.Products
@@ -93,11 +89,10 @@ namespace ShopNN.Services.Implement
             cart.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            // Refresh lại để trả về DTO đầy đủ thông tin Product
             return await GetCartByUserIdAsync(userId);
         }
 
-        public async Task<CartDTO> UpdateItemQuantityAsync(Guid userId, Guid cartItemId, UpdateCartItemDTO dto)
+        public async Task<CartResponseDTO> UpdateItemQuantityAsync(Guid userId, Guid cartItemId, CartItemUpdateDTO dto)
         {
             var cart = await GetActiveCartAsync(userId);
             var item = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
@@ -119,7 +114,7 @@ namespace ShopNN.Services.Implement
             return await GetCartByUserIdAsync(userId);
         }
 
-        public async Task<CartDTO> RemoveItemFromCartAsync(Guid userId, Guid cartItemId)
+        public async Task<CartResponseDTO> RemoveItemFromCartAsync(Guid userId, Guid cartItemId)
         {
             var cart = await GetActiveCartAsync(userId);
             var item = cart.Items.FirstOrDefault(i => i.Id == cartItemId);

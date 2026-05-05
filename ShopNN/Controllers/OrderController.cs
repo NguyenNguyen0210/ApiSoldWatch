@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using ShopNN.DTOs;
 using ShopNN.Services.Interface;
 using System.Security.Claims;
-
 using ShopNN.Exceptions;
+using ShopNN.Entities;
 
 namespace ShopNN.Controllers
 {
@@ -14,14 +14,16 @@ namespace ShopNN.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
+        private readonly IPaymentService _paymentService;
 
-        public OrderController(IOrderService orderService)
+        public OrderController(IOrderService orderService, IPaymentService paymentService)
         {
             _orderService = orderService;
+            _paymentService = paymentService;
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromBody] CheckoutRequestDTO request)
+        public async Task<IActionResult> CreateOrder([FromBody] OrderCreateRequestDTO request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
@@ -31,7 +33,14 @@ namespace ShopNN.Controllers
                 throw new UnauthorizedException("Invalid token");
 
             var result = await _orderService.CreateOrderAsync(userId.Value, request.PaymentMethod);
-            return Ok(ApiResponse<OrderDTO>.SuccessResult(result, "Order created successfully"));
+
+            if (request.PaymentMethod == PaymentMethod.VnPay)
+            {
+                var order = new Order { Id = result.Id, TotalAmount = result.TotalAmount, CreatedAt = result.CreatedAt };
+                result.PaymentUrl = _paymentService.CreatePaymentUrl(order, HttpContext);
+            }
+
+            return Ok(ApiResponse<OrderResponseDTO>.SuccessResult(result, "Order created successfully"));
         }
 
         [HttpGet]
@@ -43,16 +52,15 @@ namespace ShopNN.Controllers
 
             var orders = await _orderService.GetMyOrdersAsync(userId.Value);
 
-            return Ok(ApiResponse<List<OrderDTO>>.SuccessResult(orders, "Orders retrieved successfully"));
+            return Ok(ApiResponse<List<OrderResponseDTO>>.SuccessResult(orders, "Orders retrieved successfully"));
         }
-
 
         [Authorize(Roles = "Admin")]
         [HttpGet("all")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _orderService.GetAllOrdersAsync();
-            return Ok(ApiResponse<List<OrderDTO>>.SuccessResult(result, "All orders retrieved successfully"));
+            return Ok(ApiResponse<List<OrderResponseDTO>>.SuccessResult(result, "All orders retrieved successfully"));
         }
 
         [Authorize(Roles = "Admin")]
@@ -60,9 +68,8 @@ namespace ShopNN.Controllers
         public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] OrderStatus status)
         {
             var result = await _orderService.UpdateStatusAsync(id, status);
-            return Ok(ApiResponse<OrderDTO>.SuccessResult(result, "Order status updated successfully"));
+            return Ok(ApiResponse<OrderResponseDTO>.SuccessResult(result, "Order status updated successfully"));
         }
-
 
         private Guid? GetUserId()
         {
