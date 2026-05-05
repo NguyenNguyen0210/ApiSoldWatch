@@ -63,7 +63,7 @@ namespace ShopNN.Services.Implement
                         OrderId = order.Id,
                         ProductId = product.Id,
                         Quantity = cartItem.Quantity,
-                        UnitPrice = product.Price // Snapshot price
+                        UnitPrice = product.Price 
                     };
 
                     order.Items.Add(orderItem);

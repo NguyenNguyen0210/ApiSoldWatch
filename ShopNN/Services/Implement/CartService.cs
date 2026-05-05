@@ -22,7 +22,6 @@ namespace ShopNN.Services.Implement
         {
             var cart = await _context.Carts
                 .Include(c => c.Items)
-                .ThenInclude(i => i.Product)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (cart == null)
@@ -37,16 +36,24 @@ namespace ShopNN.Services.Implement
 
         public async Task<CartDTO> GetCartByUserIdAsync(Guid userId)
         {
-            var cart = await GetOrCreateCartAsync(userId);
+            var cart = await _context.Carts
+                .Include(c => c.Items)
+                .ThenInclude(i => i.Product)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (cart == null) return await GetCartByUserIdAsync(userId); // Fallback to create if not exists
+            
             return _mapper.Map<CartDTO>(cart);
         }
 
         public async Task<CartDTO> AddItemToCartAsync(Guid userId, AddToCartDTO dto)
         {
             var cart = await GetOrCreateCartAsync(userId);
-            var product = await _context.Products.FindAsync(dto.ProductId);
-
-            if (product == null) throw new NotFoundException("Product not found");
+            
+            // Check if product exists
+            var productExists = await _context.Products.AnyAsync(p => p.Id == dto.ProductId);
+            if (!productExists) throw new NotFoundException("Product not found");
 
             var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId);
 
@@ -56,21 +63,21 @@ namespace ShopNN.Services.Implement
             }
             else
             {
-                cart.Items.Add(new CartItem
+                var newItem = new CartItem
                 {
                     Id = Guid.NewGuid(),
                     CartId = cart.Id,
                     ProductId = dto.ProductId,
                     Quantity = dto.Quantity
-                });
+                };
+                cart.Items.Add(newItem);
             }
 
             cart.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            // Reload to get Product details for DTO
-            var updatedCart = await GetOrCreateCartAsync(userId);
-            return _mapper.Map<CartDTO>(updatedCart);
+            // Return current state
+            return await GetCartByUserIdAsync(userId);
         }
 
         public async Task<CartDTO> UpdateItemQuantityAsync(Guid userId, Guid cartItemId, UpdateCartItemDTO dto)
@@ -92,8 +99,7 @@ namespace ShopNN.Services.Implement
             cart.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            var updatedCart = await GetOrCreateCartAsync(userId);
-            return _mapper.Map<CartDTO>(updatedCart);
+            return await GetCartByUserIdAsync(userId);
         }
 
         public async Task<CartDTO> RemoveItemFromCartAsync(Guid userId, Guid cartItemId)
@@ -108,8 +114,7 @@ namespace ShopNN.Services.Implement
                 await _context.SaveChangesAsync();
             }
 
-            var updatedCart = await GetOrCreateCartAsync(userId);
-            return _mapper.Map<CartDTO>(updatedCart);
+            return await GetCartByUserIdAsync(userId);
         }
 
         public async Task<bool> ClearCartAsync(Guid userId)
