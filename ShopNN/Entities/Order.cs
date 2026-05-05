@@ -1,5 +1,14 @@
 using ShopNN.Entities;
 
+public enum OrderStatus
+{
+    Pending,
+    Processing,
+    Shipped,
+    Delivered,
+    Cancelled
+}
+
 public class Order
 {
     public Guid Id { get; set; }
@@ -9,6 +18,7 @@ public class Order
 
     public DateTime CreatedAt { get; set; }
     public decimal TotalAmount { get; set; }
+    public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
     public List<OrderItem> Items { get; set; } = new();
 }

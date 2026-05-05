@@ -24,7 +24,8 @@ namespace ShopNN.Mappings
                 .ForMember(dest => dest.ProductPrice, opt => opt.MapFrom(src => src.Product.Price));
             
             // Order Mappings
-            CreateMap<Order, OrderDTO>();
+            CreateMap<Order, OrderDTO>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
             CreateMap<OrderItem, OrderItemDTO>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : null));
         }

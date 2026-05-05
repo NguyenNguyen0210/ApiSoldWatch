@@ -52,6 +52,14 @@ namespace ShopNN.Controllers
             return Ok(ApiResponse<List<OrderDTO>>.SuccessResult(result, "All orders retrieved successfully"));
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] OrderStatus status)
+        {
+            var result = await _orderService.UpdateStatusAsync(id, status);
+            return Ok(ApiResponse<OrderDTO>.SuccessResult(result, "Order status updated successfully"));
+        }
+
 
         private Guid? GetUserId()
         {

@@ -117,5 +117,21 @@ namespace ShopNN.Services.Implement
 
             return _mapper.Map<List<OrderDTO>>(orders);
         }
+
+        public async Task<OrderDTO> UpdateStatusAsync(Guid orderId, OrderStatus status)
+        {
+            var order = await _context.Orders
+                .Include(o => o.Items)
+                .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
+            if (order == null)
+                throw new NotFoundException("Order not found");
+
+            order.Status = status;
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<OrderDTO>(order);
+        }
     }
 }

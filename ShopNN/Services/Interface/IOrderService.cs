@@ -9,5 +9,6 @@ namespace ShopNN.Services.Interface
         Task<List<OrderDTO>> GetMyOrdersAsync(Guid userId);
 
         Task<List<OrderDTO>> GetAllOrdersAsync(); // Admin
+        Task<OrderDTO> UpdateStatusAsync(Guid orderId, OrderStatus status);
     }
 }
