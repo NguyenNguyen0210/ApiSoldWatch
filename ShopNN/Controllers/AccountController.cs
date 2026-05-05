@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using ShopNN.DTOs;
 using ShopNN.Services.Interface;
 using System.Security.Claims;
+using ShopNN.Exceptions;
 
 namespace ShopNN.Controllers
 {
@@ -37,75 +38,43 @@ namespace ShopNN.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
-            try
-            {
-                var tokenResponse = await _accountService.SignIn(dto);
-                return Ok(ApiResponse<TokenResponseDTO>.SuccessResult(tokenResponse, "Sign in success"));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ApiResponse.FailureResult(ex.Message));
-            }
+
+            var tokenResponse = await _accountService.SignIn(dto);
+            return Ok(ApiResponse<TokenResponseDTO>.SuccessResult(tokenResponse, "Sign in success"));
         }
 
         [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO dto)
         {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+            if (!ModelState.IsValid)
+                return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
 
-                var response = await _accountService.RefreshToken(dto);
-                return Ok(ApiResponse<TokenResponseDTO>.SuccessResult(response, "Token refreshed"));
-            }
-            catch (SecurityTokenException ex)
-            {
-                return Unauthorized(ApiResponse.FailureResult(ex.Message));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ApiResponse.FailureResult(ex.Message));
-            }
+            var response = await _accountService.RefreshToken(dto);
+            return Ok(ApiResponse<TokenResponseDTO>.SuccessResult(response, "Token refreshed"));
         }
 
         [HttpPost("SignOut")]
         public async Task<IActionResult> SignOut([FromBody] RefreshTokenRequestDTO dto)
         {
-            try
-            {
-                if (!ModelState.IsValid) return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
-                await _accountService.SignOut(dto);
-                return Ok(ApiResponse.SuccessResult("Signed out successfully"));
-            }
-            catch (SecurityTokenException ex) { return Unauthorized(ApiResponse.FailureResult(ex.Message)); }
-            catch (Exception ex) { return BadRequest(ApiResponse.FailureResult(ex.Message)); }
+            if (!ModelState.IsValid) 
+                return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+            
+            await _accountService.SignOut(dto);
+            return Ok(ApiResponse.SuccessResult("Signed out successfully"));
         }
 
         [HttpGet("profile")]
         [Authorize]
         public async Task<IActionResult> GetProfile()
         {
-            try
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return Unauthorized(ApiResponse.FailureResult("Invalid token."));
-                }
-
-                var userProfile = await _accountService.FindByUserId(userId);
-                if (userProfile == null)
-                {
-                    return NotFound(ApiResponse.FailureResult("User not found."));
-                }
-
-                return Ok(ApiResponse<object>.SuccessResult(userProfile, "Profile retrieved"));
+                throw new UnauthorizedException("Invalid token.");
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ApiResponse.FailureResult("An error occurred while retrieving the profile.", new List<string> { ex.Message }));
-            }
+
+            var userProfile = await _accountService.FindByUserId(userId);
+            return Ok(ApiResponse<object>.SuccessResult(userProfile, "Profile retrieved"));
         }
     }
 }

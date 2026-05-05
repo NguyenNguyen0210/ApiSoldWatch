@@ -28,3 +28,5 @@ System.IO.IOException: Failed to bind to address http://127.0.0.1:5290: address 
 2026-05-05 08:53:08.768 +07:00 [INF] HTTP POST /api/Account/signin responded 400 in 4032.5929 ms
 2026-05-05 08:53:27.802 +07:00 [INF] HTTP POST /api/Account/signin responded 200 in 951.0176 ms
 2026-05-05 08:53:43.665 +07:00 [INF] HTTP GET /api/Cart responded 401 in 16.3428 ms
+2026-05-05 09:14:44.445 +07:00 [INF] HTTP GET /api/Cart responded 401 in 2972.3727 ms
+2026-05-05 09:15:17.575 +07:00 [INF] HTTP POST /api/Account/signin responded 400 in 1033.2328 ms

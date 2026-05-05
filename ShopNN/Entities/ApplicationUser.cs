@@ -6,6 +6,6 @@ namespace ShopNN.Entities
 
     {
         public List<Order> Orders { get; set; } = new();
-        public Cart Cart { get; set; }
+        public Cart? Cart { get; set; }
     }
 }

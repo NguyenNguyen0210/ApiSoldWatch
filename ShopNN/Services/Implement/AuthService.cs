@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ShopNN.DTOs;
@@ -29,9 +29,8 @@ namespace ShopNN.Services.Implement
 
         public async Task<string> GenerateAccessTokenAsync(ApplicationUser user)
         {
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_config["Jwt:Key"])
-            );
+            var jwtKey = _config["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key is not configured.");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -39,7 +38,7 @@ namespace ShopNN.Services.Implement
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Name, user.UserName ?? user.Email ?? "Unknown"),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
             };
 
@@ -111,7 +110,7 @@ namespace ShopNN.Services.Implement
             string accessToken = await GenerateAccessTokenAsync(user);
             string refreshToken = Guid.NewGuid().ToString();
             await SaveRefreshTokenAsync(refreshToken, user);
-            return new TokenResponseDTO { refreshToken = refreshToken, accessToken = accessToken };
+            return new TokenResponseDTO { RefreshToken = refreshToken, AccessToken = accessToken };
         }
     }
 }

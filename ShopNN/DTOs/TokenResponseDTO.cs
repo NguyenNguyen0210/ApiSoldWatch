@@ -1,8 +1,8 @@
-﻿namespace ShopNN.DTOs
+namespace ShopNN.DTOs
 {
     public class TokenResponseDTO
     {
-        public string accessToken { get; set; }
-        public string refreshToken { get; set; }
+        public required string AccessToken { get; set; }
+        public required string RefreshToken { get; set; }
     }
 }

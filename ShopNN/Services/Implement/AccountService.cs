@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using ShopNN.DTOs;
 using ShopNN.Entities;
 using ShopNN.Services.Interface;
+using ShopNN.Exceptions;
 
 namespace ShopNN.Services.Implement
 {
@@ -26,12 +27,13 @@ namespace ShopNN.Services.Implement
             var user = await _userManager.FindByNameAsync(dto.Username);
 
             if (user == null)
-                throw new Exception("User not found");
+                throw new NotFoundException("User not found");
 
             var valid = await _userManager.CheckPasswordAsync(user, dto.Password);
 
             if (!valid)
-                throw new Exception("Password Incorrect");
+                throw new BadRequestException("Password Incorrect");
+
             var token = await _authService.GenerateTokenAsync(user);
 
             return token;
@@ -89,7 +91,7 @@ namespace ShopNN.Services.Implement
         public async Task<ApplicationUser> FindByUserId(string userId)
         {
             var profile = await _userManager.FindByIdAsync(userId);
-            if(profile == null) return null;
+            if (profile == null) throw new NotFoundException("User not found");
             return profile;
         }
     }
