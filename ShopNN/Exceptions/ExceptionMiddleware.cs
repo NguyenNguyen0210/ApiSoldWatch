@@ -19,12 +19,17 @@ namespace ShopNN.Exceptions
             {
                 await _next(context);
             }
+            catch (AppException ex)
+            {
+                _logger.LogWarning(ex, "AppException caught: {Message}", ex.Message);
+                context.Response.StatusCode = ex.StatusCode;
+                await context.Response.WriteAsJsonAsync(ApiResponse.FailureResult(ex.Message, ex.Errors));
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unhandled exception");
-
                 context.Response.StatusCode = 500;
-                await context.Response.WriteAsJsonAsync(ApiResponse.FailureResult(ex.Message));
+                await context.Response.WriteAsJsonAsync(ApiResponse.FailureResult("An internal server error occurred.", new List<string> { ex.Message }));
             }
         }
     }

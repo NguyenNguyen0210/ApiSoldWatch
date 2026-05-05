@@ -1,0 +1,31 @@
+using AutoMapper;
+using ShopNN.DTOs;
+using ShopNN.Entities;
+
+namespace ShopNN.Mappings
+{
+    public class MappingProfile : Profile
+    {
+        public MappingProfile()
+        {
+            // Product Mappings
+            CreateMap<Product, ProductResponseDTO>()
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null));
+            CreateMap<ProductRequestDTO, Product>();
+
+            // Category Mappings
+            CreateMap<Category, CategoryDTO>();
+            CreateMap<CategoryRequestDTO, Category>();
+
+            // Cart Mappings
+            CreateMap<Cart, CartDTO>();
+            CreateMap<CartItem, CartItemDTO>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+                .ForMember(dest => dest.ProductPrice, opt => opt.MapFrom(src => src.Product.Price));
+            
+            // Order Mappings
+            CreateMap<Order, OrderDTO>();
+            CreateMap<OrderItem, OrderItemDTO>();
+        }
+    }
+}

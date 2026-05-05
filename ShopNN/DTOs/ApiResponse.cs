@@ -3,8 +3,8 @@ namespace ShopNN.DTOs
     public class ApiResponse<T>
     {
         public bool Success { get; set; }
-        public string Message { get; set; }
-        public T Data { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
         public List<string> Errors { get; set; }
 
         public ApiResponse()
@@ -13,7 +13,7 @@ namespace ShopNN.DTOs
             Errors = new List<string>();
         }
 
-        public ApiResponse(T data, string message = null)
+        public ApiResponse(T? data, string? message = null)
         {
             Success = true;
             Data = data;
@@ -21,12 +21,12 @@ namespace ShopNN.DTOs
             Errors = new List<string>();
         }
 
-        public static ApiResponse<T> SuccessResult(T data, string message = null)
+        public static ApiResponse<T> SuccessResult(T? data, string? message = null)
         {
             return new ApiResponse<T>(data, message);
         }
 
-        public static ApiResponse<T> FailureResult(string message, List<string> errors = null)
+        public static ApiResponse<T> FailureResult(string? message, List<string>? errors = null)
         {
             return new ApiResponse<T>
             {
@@ -40,7 +40,7 @@ namespace ShopNN.DTOs
     // Lớp bổ trợ cho các phản hồi không cần dữ liệu (Data)
     public class ApiResponse : ApiResponse<object>
     {
-        public static ApiResponse SuccessResult(string message = null)
+        public static ApiResponse SuccessResult(string? message = null)
         {
             return new ApiResponse
             {
@@ -50,7 +50,7 @@ namespace ShopNN.DTOs
             };
         }
 
-        public static new ApiResponse FailureResult(string message, List<string> errors = null)
+        public static new ApiResponse FailureResult(string? message, List<string>? errors = null)
         {
             return new ApiResponse
             {

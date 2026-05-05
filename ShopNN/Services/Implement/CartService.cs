@@ -1,17 +1,21 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ShopNN.DTOs;
 using ShopNN.Entities;
 using ShopNN.Services.Interface;
+using ShopNN.Exceptions;
 
 namespace ShopNN.Services.Implement
 {
     public class CartService : ICartService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public CartService(ApplicationDbContext context)
+        public CartService(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         private async Task<Cart> GetOrCreateCartAsync(Guid userId)
@@ -31,27 +35,10 @@ namespace ShopNN.Services.Implement
             return cart;
         }
 
-        private CartDTO MapToDTO(Cart cart)
-        {
-            return new CartDTO
-            {
-                Id = cart.Id,
-                UserId = cart.UserId,
-                Items = cart.Items.Select(i => new CartItemDTO
-                {
-                    Id = i.Id,
-                    ProductId = i.ProductId,
-                    ProductName = i.Product?.Name,
-                    ProductPrice = i.Product?.Price ?? 0,
-                    Quantity = i.Quantity
-                }).ToList()
-            };
-        }
-
         public async Task<CartDTO> GetCartByUserIdAsync(Guid userId)
         {
             var cart = await GetOrCreateCartAsync(userId);
-            return MapToDTO(cart);
+            return _mapper.Map<CartDTO>(cart);
         }
 
         public async Task<CartDTO> AddItemToCartAsync(Guid userId, AddToCartDTO dto)
@@ -59,7 +46,7 @@ namespace ShopNN.Services.Implement
             var cart = await GetOrCreateCartAsync(userId);
             var product = await _context.Products.FindAsync(dto.ProductId);
 
-            if (product == null) throw new Exception("Product not found");
+            if (product == null) throw new NotFoundException("Product not found");
 
             var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId);
 
@@ -83,7 +70,7 @@ namespace ShopNN.Services.Implement
 
             // Reload to get Product details for DTO
             var updatedCart = await GetOrCreateCartAsync(userId);
-            return MapToDTO(updatedCart);
+            return _mapper.Map<CartDTO>(updatedCart);
         }
 
         public async Task<CartDTO> UpdateItemQuantityAsync(Guid userId, Guid cartItemId, UpdateCartItemDTO dto)
@@ -91,7 +78,7 @@ namespace ShopNN.Services.Implement
             var cart = await GetOrCreateCartAsync(userId);
             var item = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
 
-            if (item == null) throw new Exception("Cart item not found");
+            if (item == null) throw new NotFoundException("Cart item not found");
 
             if (dto.Quantity <= 0)
             {
@@ -106,7 +93,7 @@ namespace ShopNN.Services.Implement
             await _context.SaveChangesAsync();
 
             var updatedCart = await GetOrCreateCartAsync(userId);
-            return MapToDTO(updatedCart);
+            return _mapper.Map<CartDTO>(updatedCart);
         }
 
         public async Task<CartDTO> RemoveItemFromCartAsync(Guid userId, Guid cartItemId)
@@ -122,7 +109,7 @@ namespace ShopNN.Services.Implement
             }
 
             var updatedCart = await GetOrCreateCartAsync(userId);
-            return MapToDTO(updatedCart);
+            return _mapper.Map<CartDTO>(updatedCart);
         }
 
         public async Task<bool> ClearCartAsync(Guid userId)

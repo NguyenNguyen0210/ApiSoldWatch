@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShopNN.DTOs;
 using ShopNN.Services.Interface;
+using ShopNN.Exceptions;
 
 namespace ShopNN.Controllers
 {
@@ -40,10 +41,6 @@ namespace ShopNN.Controllers
         public async Task<IActionResult> GetById(Guid id)
         {
             var product = await _productService.GetByIdAsync(id);
-
-            if (product == null)
-                return NotFound(ApiResponse.FailureResult("Product not found"));
-
             return Ok(ApiResponse<ProductResponseDTO>.SuccessResult(product, "Product retrieved"));
         }
 
@@ -55,10 +52,6 @@ namespace ShopNN.Controllers
                 return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
 
             var product = await _productService.UpdateAsync(id, dto);
-
-            if (product == null)
-                return NotFound(ApiResponse.FailureResult("Product not found"));
-
             return Ok(ApiResponse<ProductResponseDTO>.SuccessResult(product, "Product updated"));
         }
 
@@ -69,7 +62,7 @@ namespace ShopNN.Controllers
             var deleted = await _productService.DeleteAsync(id);
 
             if (!deleted)
-                return NotFound(ApiResponse.FailureResult("Product not found"));
+                throw new NotFoundException("Product not found");
 
             return Ok(ApiResponse.SuccessResult("Product deleted"));
         }

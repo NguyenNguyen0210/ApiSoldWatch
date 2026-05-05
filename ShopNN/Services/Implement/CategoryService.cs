@@ -1,31 +1,32 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ShopNN.DTOs;
 using ShopNN.Entities;
 using ShopNN.Services.Interface;
+using ShopNN.Exceptions;
 
 namespace ShopNN.Services.Implement
 {
     public class CategoryService : ICategoryService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public CategoryService(ApplicationDbContext context)
+        public CategoryService(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<CategoryDTO> CreateAsync(CategoryRequestDTO dto)
         {
-            var category = new Category
-            {
-                Id = Guid.NewGuid(),
-                Name = dto.Name
-            };
+            var category = _mapper.Map<Category>(dto);
+            category.Id = Guid.NewGuid();
 
             await _context.Categories.AddAsync(category);
             await _context.SaveChangesAsync();
 
-            return new CategoryDTO { Id = category.Id, Name = category.Name };
+            return _mapper.Map<CategoryDTO>(category);
         }
 
         public async Task<bool> DeleteAsync(Guid id)
@@ -40,29 +41,27 @@ namespace ShopNN.Services.Implement
 
         public async Task<List<CategoryDTO>> GetAllAsync()
         {
-            var categories = await _context.Categories.ToListAsync();
-            return categories.Select(c => new CategoryDTO { Id = c.Id, Name = c.Name }).ToList();
+            var categories = await _context.Categories.AsNoTracking().ToListAsync();
+            return _mapper.Map<List<CategoryDTO>>(categories);
         }
 
         public async Task<CategoryDTO> GetByIdAsync(Guid id)
         {
-            var category = await _context.Categories.FindAsync(id);
-            if (category == null) return null;
-
-            return new CategoryDTO { Id = category.Id, Name = category.Name };
+            var category = await _context.Categories.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+            if (category == null) throw new NotFoundException("Category not found");
+            return _mapper.Map<CategoryDTO>(category);
         }
 
         public async Task<CategoryDTO> UpdateAsync(Guid id, CategoryRequestDTO dto)
         {
             var category = await _context.Categories.FindAsync(id);
-            if (category == null) return null;
+            if (category == null) throw new NotFoundException("Category not found");
 
-            category.Name = dto.Name;
+            _mapper.Map(dto, category);
             
-            _context.Categories.Update(category);
             await _context.SaveChangesAsync();
 
-            return new CategoryDTO { Id = category.Id, Name = category.Name };
+            return _mapper.Map<CategoryDTO>(category);
         }
     }
 }

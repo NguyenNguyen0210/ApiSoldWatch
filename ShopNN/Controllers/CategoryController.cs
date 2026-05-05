@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShopNN.DTOs;
 using ShopNN.Services.Interface;
+using ShopNN.Exceptions;
 
 namespace ShopNN.Controllers
 {
@@ -27,7 +28,6 @@ namespace ShopNN.Controllers
         public async Task<IActionResult> GetById(Guid id)
         {
             var category = await _categoryService.GetByIdAsync(id);
-            if (category == null) return NotFound(ApiResponse.FailureResult("Category not found"));
             return Ok(ApiResponse<CategoryDTO>.SuccessResult(category, "Category retrieved successfully"));
         }
 
@@ -46,7 +46,6 @@ namespace ShopNN.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
             var category = await _categoryService.UpdateAsync(id, dto);
-            if (category == null) return NotFound(ApiResponse.FailureResult("Category not found"));
             return Ok(ApiResponse<CategoryDTO>.SuccessResult(category, "Category updated successfully"));
         }
 
@@ -55,7 +54,7 @@ namespace ShopNN.Controllers
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _categoryService.DeleteAsync(id);
-            if (!result) return NotFound(ApiResponse.FailureResult("Category not found"));
+            if (!result) throw new NotFoundException("Category not found");
             return Ok(ApiResponse.SuccessResult("Category deleted successfully"));
         }
     }

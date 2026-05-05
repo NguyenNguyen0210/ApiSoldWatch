@@ -1,42 +1,34 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ShopNN.DTOs;
 using ShopNN.Entities;
 using ShopNN.Services.Interface;
+using ShopNN.Exceptions;
 
 namespace ShopNN.Services.Implement
 {
     public class ProductService : IProductService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ProductService(ApplicationDbContext context)
+        public ProductService(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        // =========================
-        // CREATE
-        // =========================
         public async Task<ProductResponseDTO> CreateAsync(ProductRequestDTO dto)
         {
-            var product = new Product
-            {
-                Id = Guid.NewGuid(),
-                Name = dto.Name,
-                Description = dto.Description,
-                Price = dto.Price,
-                Stock = dto.Stock
-            };
+            var product = _mapper.Map<Product>(dto);
+            product.Id = Guid.NewGuid();
 
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
-            return MapToDTO(product);
+            return _mapper.Map<ProductResponseDTO>(product);
         }
 
-        // =========================
-        // DELETE
-        // =========================
         public async Task<bool> DeleteAsync(Guid id)
         {
             var product = await _context.Products.FindAsync(id);
@@ -49,9 +41,6 @@ namespace ShopNN.Services.Implement
             return true;
         }
 
-        // =========================
-        // GET ALL
-        // =========================
         public async Task<List<ProductResponseDTO>> GetAllAsync()
         {
             var products = await _context.Products
@@ -59,56 +48,39 @@ namespace ShopNN.Services.Implement
                 .AsNoTracking()
                 .ToListAsync();
 
-            return products.Select(MapToDTO).ToList();
+            return _mapper.Map<List<ProductResponseDTO>>(products);
         }
 
-        // =========================
-        // GET BY ID
-        // =========================
-        public async Task<ProductResponseDTO?> GetByIdAsync(Guid id)
+        public async Task<ProductResponseDTO> GetByIdAsync(Guid id)
         {
             var product = await _context.Products
                 .Include(p => p.Category)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
 
-            return product == null ? null : MapToDTO(product);
+            if (product == null)
+                throw new NotFoundException("Product not found");
+
+            return _mapper.Map<ProductResponseDTO>(product);
         }
 
-        // =========================
-        // UPDATE
-        // =========================
-        public async Task<ProductResponseDTO?> UpdateAsync(Guid id, ProductRequestDTO dto)
+        public async Task<ProductResponseDTO> UpdateAsync(Guid id, ProductRequestDTO dto)
         {
             var product = await _context.Products.FindAsync(id);
             if (product == null)
-                return null;
+                throw new NotFoundException("Product not found");
 
-            product.Name = dto.Name;
-            product.Description = dto.Description;
-            product.Price = dto.Price;
-            product.Stock = dto.Stock;
+            _mapper.Map(dto, product);
 
             await _context.SaveChangesAsync();
 
-            return MapToDTO(product);
-        }
+            // Fetch again with Category for the response
+            var updatedProduct = await _context.Products
+                .Include(p => p.Category)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
 
-        // =========================
-        // MAPPING
-        // =========================
-        private static ProductResponseDTO MapToDTO(Product p)
-        {
-            return new ProductResponseDTO
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
-                Price = p.Price,
-                Stock = p.Stock,
-                CategoryId = p.CategoryId,
-                CategoryName = p.Category?.Name
-            };
+            return _mapper.Map<ProductResponseDTO>(updatedProduct);
         }
     }
 }
