@@ -7,8 +7,16 @@ using ShopNN.Services.Implement;
 using ShopNN.Services.Interface;
 using System.Text;
 using ShopNN.Exceptions;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // Add services to the container.
 
@@ -76,6 +84,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseMiddleware<ExceptionMiddleware>();
+app.UseSerilogRequestLogging();
 app.UseAuthentication();
 
 app.UseAuthorization();
