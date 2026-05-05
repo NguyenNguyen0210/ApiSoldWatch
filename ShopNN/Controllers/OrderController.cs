@@ -4,6 +4,8 @@ using ShopNN.DTOs;
 using ShopNN.Services.Interface;
 using System.Security.Claims;
 
+using ShopNN.Exceptions;
+
 namespace ShopNN.Controllers
 {
     [Route("api/[controller]")]
@@ -19,24 +21,14 @@ namespace ShopNN.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromBody] List<OrderItemDTO> items)
+        public async Task<IActionResult> CreateOrder()
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
-
             var userId = GetUserId();
             if (userId == null)
-                return Unauthorized(ApiResponse.FailureResult("Invalid token"));
+                throw new UnauthorizedException("Invalid token");
 
-            try
-            {
-                var result = await _orderService.CreateOrderAsync(userId.Value, items);
-                return Ok(ApiResponse<OrderDTO>.SuccessResult(result, "Order created successfully"));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ApiResponse.FailureResult(ex.Message));
-            }
+            var result = await _orderService.CreateOrderAsync(userId.Value);
+            return Ok(ApiResponse<OrderDTO>.SuccessResult(result, "Order created successfully"));
         }
 
         [HttpGet]

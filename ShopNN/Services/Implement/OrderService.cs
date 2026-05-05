@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using ShopNN.DTOs;
 using ShopNN.Entities;
+using ShopNN.Exceptions;
 using ShopNN.Services.Interface;
 
 namespace ShopNN.Services.Implement
@@ -8,22 +10,24 @@ namespace ShopNN.Services.Implement
     public class OrderService : IOrderService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public OrderService(ApplicationDbContext context)
+        public OrderService(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        public async Task<OrderDTO> CreateOrderAsync(Guid userId, List<OrderItemDTO> items)
+        public async Task<OrderDTO> CreateOrderAsync(Guid userId)
         {
-            if (items == null || !items.Any())
-                throw new ArgumentException("Order must have at least 1 item");
+            // 1. Get user's cart
+            var cart = await _context.Carts
+                .Include(c => c.Items)
+                .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
 
-            var productIds = items.Select(i => i.ProductId).ToList();
-
-            var products = await _context.Products
-                .Where(p => productIds.Contains(p.Id))
-                .ToDictionaryAsync(p => p.Id); // 🔥 tối ưu lookup
+            if (cart == null || !cart.Items.Any())
+                throw new BadRequestException("Your cart is empty");
 
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -34,42 +38,53 @@ namespace ShopNN.Services.Implement
                     Id = Guid.NewGuid(),
                     UserId = userId,
                     CreatedAt = DateTime.UtcNow,
+                    TotalAmount = 0,
                     Items = new List<OrderItem>()
                 };
 
-                foreach (var item in items)
+                foreach (var cartItem in cart.Items)
                 {
-                    if (!products.TryGetValue(item.ProductId, out var product))
-                        throw new Exception($"Product {item.ProductId} not found");
+                    var product = cartItem.Product;
+                    if (product == null)
+                        throw new NotFoundException($"Product in cart not found");
 
-                    if (product.Stock < item.Quantity)
-                        throw new Exception($"Product {product.Name} not enough stock");
+                    if (product.Stock < cartItem.Quantity)
+                        throw new BadRequestException($"Product '{product.Name}' does not have enough stock (Available: {product.Stock})");
 
-                    product.Stock -= item.Quantity;
+                    // Reduce stock
+                    product.Stock -= cartItem.Quantity;
 
-                    order.Items.Add(new OrderItem
+                    var orderItem = new OrderItem
                     {
                         Id = Guid.NewGuid(),
+                        OrderId = order.Id,
                         ProductId = product.Id,
-                        Quantity = item.Quantity
-                    });
+                        Quantity = cartItem.Quantity,
+                        UnitPrice = product.Price // Snapshot price
+                    };
+
+                    order.Items.Add(orderItem);
+                    order.TotalAmount += orderItem.UnitPrice * orderItem.Quantity;
                 }
 
+                // 2. Save Order
                 await _context.Orders.AddAsync(order);
-                await _context.SaveChangesAsync();
 
+                // 3. Clear Cart
+                _context.CartItems.RemoveRange(cart.Items);
+                cart.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                return new OrderDTO
-                {
-                    Id = order.Id,
-                    CreatedAt = order.CreatedAt,
-                    Items = order.Items.Select(i => new OrderItemDTO
-                    {
-                        ProductId = i.ProductId,
-                        Quantity = i.Quantity
-                    }).ToList()
-                };
+                // Reload order with product details for the DTO
+                var resultOrder = await _context.Orders
+                    .Include(o => o.Items)
+                    .ThenInclude(i => i.Product)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(o => o.Id == order.Id);
+
+                return _mapper.Map<OrderDTO>(resultOrder);
             }
             catch
             {
@@ -78,49 +93,29 @@ namespace ShopNN.Services.Implement
             }
         }
 
-        // =========================
-        // USER ORDERS
-        // =========================
         public async Task<List<OrderDTO>> GetMyOrdersAsync(Guid userId)
         {
             var orders = await _context.Orders
-                .Where(o => o.UserId == userId)
                 .Include(o => o.Items)
+                .ThenInclude(i => i.Product)
+                .Where(o => o.UserId == userId)
                 .OrderByDescending(o => o.CreatedAt)
+                .AsNoTracking()
                 .ToListAsync();
 
-            return orders.Select(o => new OrderDTO
-            {
-                Id = o.Id,
-                CreatedAt = o.CreatedAt,
-                Items = o.Items.Select(i => new OrderItemDTO
-                {
-                    ProductId = i.ProductId,
-                    Quantity = i.Quantity
-                }).ToList()
-            }).ToList();
+            return _mapper.Map<List<OrderDTO>>(orders);
         }
 
-        // =========================
-        // ADMIN
-        // =========================
         public async Task<List<OrderDTO>> GetAllOrdersAsync()
         {
             var orders = await _context.Orders
                 .Include(o => o.Items)
+                .ThenInclude(i => i.Product)
                 .OrderByDescending(o => o.CreatedAt)
+                .AsNoTracking()
                 .ToListAsync();
 
-            return orders.Select(o => new OrderDTO
-            {
-                Id = o.Id,
-                CreatedAt = o.CreatedAt,
-                Items = o.Items.Select(i => new OrderItemDTO
-                {
-                    ProductId = i.ProductId,
-                    Quantity = i.Quantity
-                }).ToList()
-            }).ToList();
+            return _mapper.Map<List<OrderDTO>>(orders);
         }
     }
 }

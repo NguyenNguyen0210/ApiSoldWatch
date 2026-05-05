@@ -1,10 +1,10 @@
-﻿using ShopNN.DTOs;
+using ShopNN.DTOs;
 
 namespace ShopNN.Services.Interface
 {
     public interface IOrderService
     {
-        Task<OrderDTO>  CreateOrderAsync(Guid userId, List<OrderItemDTO> items);
+        Task<OrderDTO> CreateOrderAsync(Guid userId);
 
         Task<List<OrderDTO>> GetMyOrdersAsync(Guid userId);
 

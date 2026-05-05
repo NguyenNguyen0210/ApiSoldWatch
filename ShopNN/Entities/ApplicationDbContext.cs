@@ -114,6 +114,14 @@ namespace ShopNN.Entities
                 .Property(p => p.Price)
                 .HasColumnType("decimal(18,2)");
 
+            model.Entity<Order>()
+                .Property(o => o.TotalAmount)
+                .HasColumnType("decimal(18,2)");
+
+            model.Entity<OrderItem>()
+                .Property(oi => oi.UnitPrice)
+                .HasColumnType("decimal(18,2)");
+
             // =========================
             // FIX: typo (optional safety)
             // =========================

@@ -25,7 +25,8 @@ namespace ShopNN.Mappings
             
             // Order Mappings
             CreateMap<Order, OrderDTO>();
-            CreateMap<OrderItem, OrderItemDTO>();
+            CreateMap<OrderItem, OrderItemDTO>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : null));
         }
     }
 }

@@ -8,6 +8,7 @@ public class Order
     public ApplicationUser? User { get; set; }
 
     public DateTime CreatedAt { get; set; }
+    public decimal TotalAmount { get; set; }
 
     public List<OrderItem> Items { get; set; } = new();
 }

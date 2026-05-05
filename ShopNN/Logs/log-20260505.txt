@@ -30,3 +30,15 @@ System.IO.IOException: Failed to bind to address http://127.0.0.1:5290: address 
 2026-05-05 08:53:43.665 +07:00 [INF] HTTP GET /api/Cart responded 401 in 16.3428 ms
 2026-05-05 09:14:44.445 +07:00 [INF] HTTP GET /api/Cart responded 401 in 2972.3727 ms
 2026-05-05 09:15:17.575 +07:00 [INF] HTTP POST /api/Account/signin responded 400 in 1033.2328 ms
+2026-05-05 10:06:11.880 +07:00 [WRN] No store type was specified for the decimal property 'TotalAmount' on entity type 'Order'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2026-05-05 10:06:11.922 +07:00 [WRN] No store type was specified for the decimal property 'UnitPrice' on entity type 'OrderItem'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2026-05-05 10:06:12.313 +07:00 [WRN] No store type was specified for the decimal property 'TotalAmount' on entity type 'Order'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2026-05-05 10:06:12.313 +07:00 [WRN] No store type was specified for the decimal property 'UnitPrice' on entity type 'OrderItem'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2026-05-05 10:07:02.032 +07:00 [ERR] Failed executing DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DELETE FROM [Products]
+WHERE [Id] = 'e0966b76-54fd-4e15-a597-c69b0d12fdbb';
+SELECT @@ROWCOUNT;
+2026-05-05 10:07:25.204 +07:00 [ERR] Failed executing DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DELETE FROM [Products]
+WHERE [Id] = 'e0966b76-54fd-4e15-a597-c69b0d12fdbb';
+SELECT @@ROWCOUNT;
