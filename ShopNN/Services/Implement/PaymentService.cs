@@ -34,7 +34,7 @@ namespace ShopNN.Services.Implement
             vnpay.AddRequestData("vnp_CurrCode", _configuration["VnPay:CurrCode"] ?? "VND");
             vnpay.AddRequestData("vnp_IpAddr", context.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1");
             vnpay.AddRequestData("vnp_Locale", "vn");
-            vnpay.AddRequestData("vnp_OrderInfo", "Thanh toan don hang: " + order.Id);
+            vnpay.AddRequestData("vnp_OrderInfo", "Payment for order: " + order.Id);
             vnpay.AddRequestData("vnp_OrderType", "other");
             vnpay.AddRequestData("vnp_ReturnUrl", vnp_ReturnUrl!);
             vnpay.AddRequestData("vnp_TxnRef", order.Id.ToString());

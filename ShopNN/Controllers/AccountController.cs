@@ -23,21 +23,21 @@ namespace ShopNN.Controllers
         public async Task<IActionResult> SignUp([FromBody] SignUpDTO dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+                return BadRequest(ApiResponse<object>.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
 
             var result = await _accountService.SignUp(dto);
 
             if (!result.Succeeded)
-                return BadRequest(ApiResponse.FailureResult("Sign up failed", result.Errors.Select(e => e.Description).ToList()));
+                return BadRequest(ApiResponse<object>.FailureResult("Sign up failed", result.Errors.Select(e => e.Description).ToList()));
 
-            return Ok(ApiResponse.SuccessResult("Sign up success"));
+            return Ok(ApiResponse<object>.SuccessResult("Sign up success"));
         }
 
         [HttpPost("signin")]
         public async Task<IActionResult> SignIn([FromBody] SignInDTO dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+                return BadRequest(ApiResponse<object>.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
 
             var tokenResponse = await _accountService.SignIn(dto);
             return Ok(ApiResponse<TokenResponseDTO>.SuccessResult(tokenResponse, "Sign in success"));
@@ -47,7 +47,7 @@ namespace ShopNN.Controllers
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+                return BadRequest(ApiResponse<object>.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
 
             var response = await _accountService.RefreshToken(dto);
             return Ok(ApiResponse<TokenResponseDTO>.SuccessResult(response, "Token refreshed"));
@@ -57,10 +57,10 @@ namespace ShopNN.Controllers
         public async Task<IActionResult> SignOut([FromBody] RefreshTokenRequestDTO dto)
         {
             if (!ModelState.IsValid) 
-                return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+                return BadRequest(ApiResponse<object>.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
             
             await _accountService.SignOut(dto);
-            return Ok(ApiResponse.SuccessResult("Signed out successfully"));
+            return Ok(ApiResponse<object>.SuccessResult("Signed out successfully"));
         }
 
         [HttpGet("profile")]

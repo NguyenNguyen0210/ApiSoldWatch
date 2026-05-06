@@ -35,7 +35,7 @@ namespace ShopNN.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CategoryRequestDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+            if (!ModelState.IsValid) return BadRequest(ApiResponse<object>.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
             var category = await _categoryService.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = category.Id }, ApiResponse<CategoryResponseDTO>.SuccessResult(category, "Category created successfully"));
         }
@@ -44,7 +44,7 @@ namespace ShopNN.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] CategoryRequestDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+            if (!ModelState.IsValid) return BadRequest(ApiResponse<object>.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
             var category = await _categoryService.UpdateAsync(id, dto);
             return Ok(ApiResponse<CategoryResponseDTO>.SuccessResult(category, "Category updated successfully"));
         }
@@ -55,7 +55,7 @@ namespace ShopNN.Controllers
         {
             var result = await _categoryService.DeleteAsync(id);
             if (!result) throw new NotFoundException("Category not found");
-            return Ok(ApiResponse.SuccessResult("Category deleted successfully"));
+            return Ok(ApiResponse<object>.SuccessResult("Category deleted successfully"));
         }
     }
 }

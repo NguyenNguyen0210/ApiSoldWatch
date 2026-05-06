@@ -25,6 +25,10 @@ namespace ShopNN.DTOs
         {
             return new ApiResponse<T>(data, message);
         }
+        public static ApiResponse<T> SuccessResult(string? message = null)
+        {
+            return new ApiResponse<T>(default, message);
+        }
 
         public static ApiResponse<T> FailureResult(string? message, List<string>? errors = null)
         {
@@ -37,27 +41,4 @@ namespace ShopNN.DTOs
         }
     }
 
-    public class ApiResponse : ApiResponse<object>
-    {
-        public static ApiResponse SuccessResult(string? message = null)
-        {
-            return new ApiResponse
-            {
-                Success = true,
-                Message = message,
-                Data = null
-            };
-        }
-
-        public static new ApiResponse FailureResult(string? message, List<string>? errors = null)
-        {
-            return new ApiResponse
-            {
-                Success = false,
-                Message = message,
-                Errors = errors ?? new List<string>(),
-                Data = null
-            };
-        }
-    }
 }

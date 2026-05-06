@@ -77,7 +77,7 @@ builder.Services.AddAuthentication(options =>
         {
             context.HandleResponse();
             context.Response.StatusCode = 401;
-            return context.Response.WriteAsync("Invalid Token");
+            return context.Response.WriteAsJsonAsync(new { error = "Invalid Token. " });
         }
     };
 });

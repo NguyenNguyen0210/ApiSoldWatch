@@ -11,8 +11,5 @@ namespace ShopNN.Services.Interface
         Task SignOut(RefreshTokenRequestDTO request);
         Task<TokenResponseDTO> RefreshToken(RefreshTokenRequestDTO request);
         Task<ApplicationUser> FindByUserId(string userId);
-
-
-
     }
 }

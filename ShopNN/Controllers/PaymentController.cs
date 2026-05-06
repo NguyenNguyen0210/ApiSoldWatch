@@ -23,10 +23,10 @@ namespace ShopNN.Controllers
             if (result)
             {
                 // Trong thực tế, bạn có thể redirect về trang Frontend thành công
-                return Ok(ApiResponse.SuccessResult("Payment successful"));
+                return Ok(ApiResponse<object>.SuccessResult("Payment successful"));
             }
             
-            return BadRequest(ApiResponse.FailureResult("Payment failed or invalid signature"));
+            return BadRequest(ApiResponse<object>.FailureResult("Payment failed or invalid signature"));
         }
     }
 }

@@ -23,7 +23,7 @@ namespace ShopNN.Controllers
         public async Task<IActionResult> Create([FromBody] ProductRequestDTO dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+                return BadRequest(ApiResponse<object>.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
 
             var product = await _productService.CreateAsync(dto);
 
@@ -49,7 +49,7 @@ namespace ShopNN.Controllers
         public async Task<IActionResult> Update(Guid id, [FromBody] ProductRequestDTO dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+                return BadRequest(ApiResponse<object>.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
 
             var product = await _productService.UpdateAsync(id, dto);
             return Ok(ApiResponse<ProductResponseDTO>.SuccessResult(product, "Product updated"));
@@ -64,7 +64,7 @@ namespace ShopNN.Controllers
             if (!deleted)
                 throw new NotFoundException("Product not found");
 
-            return Ok(ApiResponse.SuccessResult("Product deleted"));
+            return Ok(ApiResponse<object>.SuccessResult("Product deleted"));
         }
     }
 }

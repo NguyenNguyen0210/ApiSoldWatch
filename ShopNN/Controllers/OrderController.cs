@@ -10,7 +10,7 @@ namespace ShopNN.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] 
+    [Authorize]
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
@@ -22,62 +22,71 @@ namespace ShopNN.Controllers
             _paymentService = paymentService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateOrder([FromBody] OrderCreateRequestDTO request)
+        /// <summary>
+        /// Create a new order from the current cart.
+        /// Returns a payment URL if VnPay is selected.
+        /// </summary>
+        [HttpPost("checkout")]
+        public async Task<IActionResult> Checkout([FromBody] OrderCreateRequestDTO request)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ApiResponse.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+                return BadRequest(ApiResponse<object>.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
 
             var userId = GetUserId();
             if (userId == null)
-                throw new UnauthorizedException("Invalid token");
+                throw new UnauthorizedException("Session expired.");
 
-            var result = await _orderService.CreateOrderAsync(userId.Value, request.PaymentMethod);
+            // 1. Create order in DB
+            var orderResponse = await _orderService.CreateOrderAsync(userId.Value, request.PaymentMethod);
 
+            // 2. Handle VnPay payment if selected
             if (request.PaymentMethod == PaymentMethod.VnPay)
             {
-                var order = new Order { Id = result.Id, TotalAmount = result.TotalAmount, CreatedAt = result.CreatedAt };
-                result.PaymentUrl = _paymentService.CreatePaymentUrl(order, HttpContext);
+                var orderEntity = new Order 
+                { 
+                    Id = orderResponse.Id, 
+                    TotalAmount = orderResponse.TotalAmount, 
+                    CreatedAt = orderResponse.CreatedAt 
+                };
+                
+                orderResponse.PaymentUrl = _paymentService.CreatePaymentUrl(orderEntity, HttpContext);
             }
 
-            return Ok(ApiResponse<OrderResponseDTO>.SuccessResult(result, "Order created successfully"));
+            return Ok(ApiResponse<OrderResponseDTO>.SuccessResult(orderResponse, "Order created successfully."));
         }
 
-        [HttpGet]
+        [HttpGet("my-orders")]
         public async Task<IActionResult> GetMyOrders()
         {
             var userId = GetUserId();
             if (userId == null)
-                return Unauthorized(ApiResponse.FailureResult("Invalid token"));
+                return Unauthorized(ApiResponse<object>.FailureResult("Session expired."));
 
             var orders = await _orderService.GetMyOrdersAsync(userId.Value);
-
-            return Ok(ApiResponse<List<OrderResponseDTO>>.SuccessResult(orders, "Orders retrieved successfully"));
+            return Ok(ApiResponse<List<OrderResponseDTO>>.SuccessResult(orders, "Orders retrieved successfully."));
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpGet("all")]
+        [HttpGet("admin/all")]
         public async Task<IActionResult> GetAll()
         {
             var result = await _orderService.GetAllOrdersAsync();
-            return Ok(ApiResponse<List<OrderResponseDTO>>.SuccessResult(result, "All orders retrieved successfully"));
+            return Ok(ApiResponse<List<OrderResponseDTO>>.SuccessResult(result, "All orders retrieved successfully."));
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPut("{id}/status")]
+        [HttpPut("admin/{id}/status")]
         public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] OrderStatus status)
         {
             var result = await _orderService.UpdateStatusAsync(id, status);
-            return Ok(ApiResponse<OrderResponseDTO>.SuccessResult(result, "Order status updated successfully"));
+            return Ok(ApiResponse<OrderResponseDTO>.SuccessResult(result, "Order status updated successfully."));
         }
 
         private Guid? GetUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
             if (Guid.TryParse(userIdClaim, out var userId))
                 return userId;
-
             return null;
         }
     }

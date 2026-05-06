@@ -60,7 +60,7 @@ namespace ShopNN.Controllers
         public async Task<IActionResult> ClearCart()
         {
             await _cartService.ClearCartAsync(GetUserId());
-            return Ok(ApiResponse.SuccessResult("Cart cleared successfully"));
+            return Ok(ApiResponse<object>.SuccessResult("Cart cleared successfully"));
         }
     }
 }

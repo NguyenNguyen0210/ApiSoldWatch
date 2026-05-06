@@ -48,10 +48,10 @@ namespace ShopNN.Entities
                 new IdentityUserRole<Guid> { UserId = adminUserId, RoleId = adminRoleId }
             );
 
-            var catLuxuryId = Guid.Parse("c1111111-1111-1111-1111-111111111111");
-            var catSportId = Guid.Parse("c2222222-2222-2222-2222-222222222222");
-            var catSmartId = Guid.Parse("c3333333-3333-3333-3333-333333333333");
-            var catClassicId = Guid.Parse("c4444444-4444-4444-4444-444444444444");
+            var catLuxuryId = Guid.NewGuid();
+            var catSportId = Guid.NewGuid();
+            var catSmartId = Guid.NewGuid();
+            var catClassicId = Guid.NewGuid();
 
             model.Entity<Category>().HasData(
                 new Category { Id = catLuxuryId, Name = "Luxury Watches" },
