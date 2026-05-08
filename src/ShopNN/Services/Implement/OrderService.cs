@@ -23,20 +23,19 @@ namespace ShopNN.Services.Implement
 
         public async Task<OrderResponseDTO> CreateOrderAsync(Guid userId, PaymentMethod paymentMethod)
         {
-            // 1. Get user cart with product info
-            var cart = await _context.Carts
-                .Include(c => c.Items)
-                .ThenInclude(i => i.Product)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
 
-            if (cart == null || !cart.Items.Any())
-                throw new BadRequestException("Your cart is empty.");
 
-            // Start Transaction to ensure data integrity
             using var transaction = await _context.Database.BeginTransactionAsync();
-
             try
             {
+                var cart = await _context.Carts
+                    .Include(c => c.Items)
+                    .ThenInclude(i => i.Product)
+                    .FirstOrDefaultAsync(c => c.UserId == userId);
+
+
+                if (cart == null || !cart.Items.Any())
+                    throw new BadRequestException("Your cart is empty.");
                 var order = new Order
                 {
                     Id = Guid.NewGuid(),
@@ -54,7 +53,6 @@ namespace ShopNN.Services.Implement
                     var product = cartItem.Product;
                     if (product == null) continue;
 
-                    // Stock check
                     if (product.Stock < cartItem.Quantity)
                     {
                         throw new BadRequestException($"Product '{product.Name}' is out of stock (Available: {product.Stock}).");

@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace ShopNN.Entities
 {
     public class Product
@@ -13,5 +15,7 @@ namespace ShopNN.Entities
         public Category? Category { get; set; }
 
         public List<OrderItem> OrderItems { get; set; } = new();
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
     }
 }
