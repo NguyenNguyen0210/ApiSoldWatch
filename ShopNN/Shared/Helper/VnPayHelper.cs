@@ -1,11 +1,9 @@
-﻿using System.Net;
-using System.Net.Sockets;
-using System.Security.Cryptography;
+using System.Net;
 using System.Text;
-
-namespace ShopNN.Utils
+using ShopNN.Utils;
+namespace ShopNN.Shared.Helper
 {
-    public class VnPayLibrary
+    public class VnPayHelper
     {
         private readonly SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayComparer());
         private readonly SortedList<string, string> _responseData = new SortedList<string, string>(new VnPayComparer());
@@ -45,7 +43,7 @@ namespace ShopNN.Utils
             var queryString = data.ToString();
             baseUrl += "?" + queryString;
             var signData = queryString.TrimEnd('&');
-            var vnpSecureHash = HmacSha512(vnpHashSecret, signData);
+            var vnpSecureHash = HashUtils.HmacSha512(vnpHashSecret, signData);
             baseUrl += "vnp_SecureHash=" + vnpSecureHash;
 
             return baseUrl;
@@ -54,25 +52,11 @@ namespace ShopNN.Utils
         public bool ValidateSignature(string inputHash, string secretKey)
         {
             var rspRaw = GetResponseRaw();
-            var myChecksum = HmacSha512(secretKey, rspRaw);
+            var myChecksum = HashUtils.HmacSha512(secretKey, rspRaw);
             return myChecksum.Equals(inputHash, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private string HmacSha512(string key, string inputData)
-        {
-            var hash = new StringBuilder();
-            var keyBytes = Encoding.UTF8.GetBytes(key);
-            var inputBytes = Encoding.UTF8.GetBytes(inputData);
-            using (var hmac = new HMACSHA512(keyBytes))
-            {
-                var hashValue = hmac.ComputeHash(inputBytes);
-                foreach (var theByte in hashValue)
-                {
-                    hash.Append(theByte.ToString("x2"));
-                }
-            }
-            return hash.ToString();
-        }
+
 
         private string GetResponseRaw()
         {

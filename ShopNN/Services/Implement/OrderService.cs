@@ -1,41 +1,38 @@
 using AutoMapper;
-using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using ShopNN.DTOs;
 using ShopNN.Entities;
 using ShopNN.Exceptions;
 using ShopNN.Services.Interface;
+using ShopNN.Entities;
 
 namespace ShopNN.Services.Implement
 {
     public class OrderService : IOrderService
     {
         private readonly ApplicationDbContext _context;
-        private readonly PaymentService _paymentService;
         private readonly IMapper _mapper;
 
-        public OrderService(ApplicationDbContext context, IMapper mapper, PaymentService paymentService)
+        public OrderService(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
-            _paymentService = paymentService;
         }
 
         public async Task<OrderResponseDTO> CreateOrderAsync(Guid userId, PaymentMethod paymentMethod)
         {
+            var cart = await _context.Carts
+                .Include(c => c.Items)
+                .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
 
+            if (cart == null || !cart.Items.Any())
+                throw new BadRequestException("Your cart is empty.");
 
             using var transaction = await _context.Database.BeginTransactionAsync();
+
             try
             {
-                var cart = await _context.Carts
-                    .Include(c => c.Items)
-                    .ThenInclude(i => i.Product)
-                    .FirstOrDefaultAsync(c => c.UserId == userId);
-
-
-                if (cart == null || !cart.Items.Any())
-                    throw new BadRequestException("Your cart is empty.");
                 var order = new Order
                 {
                     Id = Guid.NewGuid(),
@@ -54,11 +51,8 @@ namespace ShopNN.Services.Implement
                     if (product == null) continue;
 
                     if (product.Stock < cartItem.Quantity)
-                    {
-                        throw new BadRequestException($"Product '{product.Name}' is out of stock (Available: {product.Stock}).");
-                    }
+                        throw new BadRequestException($"Product '{product.Name}' is out of stock.");
 
-                    // Subtract stock
                     product.Stock -= cartItem.Quantity;
 
                     var orderItem = new OrderItem
@@ -73,23 +67,18 @@ namespace ShopNN.Services.Implement
                     order.Items.Add(orderItem);
                     order.TotalAmount += orderItem.UnitPrice * orderItem.Quantity;
                 }
-                // 2. Save order
-                await _context.Orders.AddAsync(order);
 
-                // 3. Clear cart items after successful order creation
+                await _context.Orders.AddAsync(order);
                 _context.CartItems.RemoveRange(cart.Items);
                 cart.UpdatedAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
-                
-                // Commit transaction
                 await transaction.CommitAsync();
 
                 return _mapper.Map<OrderResponseDTO>(order);
             }
             catch (Exception)
             {
-                // Rollback if any error occurs
                 await transaction.RollbackAsync();
                 throw;
             }

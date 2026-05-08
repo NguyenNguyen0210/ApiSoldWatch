@@ -5,6 +5,7 @@ using ShopNN.DTOs;
 using ShopNN.Services.Interface;
 using System.Security.Claims;
 using ShopNN.Exceptions;
+using ShopNN.Shared.Wrappers;
 
 namespace ShopNN.Controllers
 {

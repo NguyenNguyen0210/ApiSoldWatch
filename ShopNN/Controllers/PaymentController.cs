@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using ShopNN.DTOs;
 using ShopNN.Services.Interface;
+using ShopNN.Shared.Wrappers;
 
 namespace ShopNN.Controllers
 {

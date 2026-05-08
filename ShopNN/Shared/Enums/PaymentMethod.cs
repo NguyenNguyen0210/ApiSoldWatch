@@ -1,4 +1,4 @@
-﻿namespace ShopNN.Entities
+namespace ShopNN.Entities
 {
     public enum PaymentMethod
     {

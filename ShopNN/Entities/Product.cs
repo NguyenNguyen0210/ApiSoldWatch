@@ -15,7 +15,5 @@ namespace ShopNN.Entities
         public Category? Category { get; set; }
 
         public List<OrderItem> OrderItems { get; set; } = new();
-        [Timestamp]
-        public byte[] RowVersion { get; set; }
     }
 }

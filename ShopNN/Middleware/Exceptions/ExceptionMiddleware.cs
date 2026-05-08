@@ -1,4 +1,4 @@
-using ShopNN.DTOs;
+using ShopNN.Shared.Wrappers;
 
 namespace ShopNN.Exceptions
 {

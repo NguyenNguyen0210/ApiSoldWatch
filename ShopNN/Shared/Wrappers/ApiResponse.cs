@@ -1,4 +1,4 @@
-namespace ShopNN.DTOs
+namespace ShopNN.Shared.Wrappers
 {
     public class ApiResponse<T>
     {

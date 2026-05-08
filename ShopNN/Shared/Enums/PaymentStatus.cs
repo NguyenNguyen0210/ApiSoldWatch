@@ -1,4 +1,4 @@
-using ShopNN.Entities;
+namespace ShopNN.Entities;
 
 public enum PaymentStatus
 {
