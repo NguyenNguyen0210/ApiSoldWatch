@@ -29,10 +29,10 @@ namespace ShopNN.Services.Implement
             vnpay.AddRequestData("vnp_Version", _configuration["VnPay:Version"] ?? "2.1.0");
             vnpay.AddRequestData("vnp_Command", _configuration["VnPay:Command"] ?? "pay");
             vnpay.AddRequestData("vnp_TmnCode", vnp_TmnCode!);
-            vnpay.AddRequestData("vnp_Amount", ((long)(order.TotalAmount * 100)).ToString()); // VnPay x100
+            vnpay.AddRequestData("vnp_Amount", ((long)(order.TotalAmount * 100)).ToString());
             vnpay.AddRequestData("vnp_CreateDate", order.CreatedAt.ToString("yyyyMMddHHmmss"));
             vnpay.AddRequestData("vnp_CurrCode", _configuration["VnPay:CurrCode"] ?? "VND");
-            vnpay.AddRequestData("vnp_IpAddr", context.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1");
+            vnpay.AddRequestData("vnp_IpAddr", context.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1" ) ;
             vnpay.AddRequestData("vnp_Locale", "vn");
             vnpay.AddRequestData("vnp_OrderInfo", "Payment for order: " + order.Id);
             vnpay.AddRequestData("vnp_OrderType", "other");

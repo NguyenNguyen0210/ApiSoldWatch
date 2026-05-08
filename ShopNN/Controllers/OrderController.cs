@@ -49,7 +49,8 @@ namespace ShopNN.Controllers
                     CreatedAt = orderResponse.CreatedAt 
                 };
                 
-                orderResponse.PaymentUrl = _paymentService.CreatePaymentUrl(orderEntity, HttpContext);
+                var paymentUrl = _paymentService.CreatePaymentUrl(orderEntity, HttpContext);
+                orderResponse.PaymentUrl = paymentUrl;
             }
 
             return Ok(ApiResponse<OrderResponseDTO>.SuccessResult(orderResponse, "Order created successfully."));

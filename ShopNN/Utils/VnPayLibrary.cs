@@ -1,4 +1,5 @@
-using System.Net;
+﻿using System.Net;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -86,7 +87,6 @@ namespace ShopNN.Utils
             return data.ToString().TrimEnd('&');
         }
     }
-
     public class VnPayComparer : IComparer<string>
     {
         public int Compare(string x, string y)

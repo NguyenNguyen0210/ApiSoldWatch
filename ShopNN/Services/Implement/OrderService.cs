@@ -1,4 +1,5 @@
 using AutoMapper;
+using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using ShopNN.DTOs;
 using ShopNN.Entities;
@@ -10,12 +11,14 @@ namespace ShopNN.Services.Implement
     public class OrderService : IOrderService
     {
         private readonly ApplicationDbContext _context;
+        private readonly PaymentService _paymentService;
         private readonly IMapper _mapper;
 
-        public OrderService(ApplicationDbContext context, IMapper mapper)
+        public OrderService(ApplicationDbContext context, IMapper mapper, PaymentService paymentService)
         {
             _context = context;
             _mapper = mapper;
+            _paymentService = paymentService;
         }
 
         public async Task<OrderResponseDTO> CreateOrderAsync(Guid userId, PaymentMethod paymentMethod)
@@ -72,7 +75,6 @@ namespace ShopNN.Services.Implement
                     order.Items.Add(orderItem);
                     order.TotalAmount += orderItem.UnitPrice * orderItem.Quantity;
                 }
-
                 // 2. Save order
                 await _context.Orders.AddAsync(order);
 
