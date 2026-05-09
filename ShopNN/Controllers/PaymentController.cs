@@ -22,7 +22,6 @@ namespace ShopNN.Controllers
             
             if (result)
             {
-                // Trong thực tế, bạn có thể redirect về trang Frontend thành công
                 return Ok(ApiResponse<object>.SuccessResult("Payment successful"));
             }
             

@@ -1,36 +1,41 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ShopNN.DTOs;
 using ShopNN.Entities;
-using ShopNN.Exceptions;
+using ShopNN.Repositories.Implement;
+using ShopNN.Repositories.Interface;
 using ShopNN.Services.Interface;
-using ShopNN.Entities;
+using ShopNN.Shared.Enums;
+using ShopNN.Shared.Exeptions;
 
 namespace ShopNN.Services.Implement
 {
     public class OrderService : IOrderService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IOrderRepository _orderRepository;
+        private readonly ICartRepository _cartRepository;
+        private readonly IProductRepository _productRepository;
         private readonly IMapper _mapper;
 
-        public OrderService(ApplicationDbContext context, IMapper mapper)
+        public OrderService(
+            IOrderRepository orderRepository,
+            ICartRepository cartRepository,
+            IProductRepository productRepository,
+            IMapper mapper)
         {
-            _context = context;
+            _orderRepository = orderRepository;
+            _cartRepository = cartRepository;
+            _productRepository = productRepository;
             _mapper = mapper;
         }
 
         public async Task<OrderResponseDTO> CreateOrderAsync(Guid userId, PaymentMethod paymentMethod)
         {
-            var cart = await _context.Carts
-                .Include(c => c.Items)
-                .ThenInclude(i => i.Product)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
+            var cart = await _cartRepository.GetCartByUserIdAsync(userId);
 
             if (cart == null || !cart.Items.Any())
                 throw new BadRequestException("Your cart is empty.");
-
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
+            using var transaction = await _orderRepository.BeginTransactionAsync();
             try
             {
                 var order = new Order
@@ -47,8 +52,8 @@ namespace ShopNN.Services.Implement
 
                 foreach (var cartItem in cart.Items)
                 {
-                    var product = cartItem.Product;
-                    if (product == null) continue;
+                    var product = cartItem.Product
+                        ?? throw new NotFoundException("Product not found.");
 
                     if (product.Stock < cartItem.Quantity)
                         throw new BadRequestException($"Product '{product.Name}' is out of stock.");
@@ -68,16 +73,16 @@ namespace ShopNN.Services.Implement
                     order.TotalAmount += orderItem.UnitPrice * orderItem.Quantity;
                 }
 
-                await _context.Orders.AddAsync(order);
-                _context.CartItems.RemoveRange(cart.Items);
+                cart.Items.Clear();
                 cart.UpdatedAt = DateTime.UtcNow;
 
-                await _context.SaveChangesAsync();
+                await _orderRepository.AddAsync(order);
+                await _orderRepository.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 return _mapper.Map<OrderResponseDTO>(order);
             }
-            catch (Exception)
+            catch
             {
                 await transaction.RollbackAsync();
                 throw;
@@ -86,39 +91,23 @@ namespace ShopNN.Services.Implement
 
         public async Task<List<OrderResponseDTO>> GetMyOrdersAsync(Guid userId)
         {
-            var orders = await _context.Orders
-                .Include(o => o.Items)
-                .ThenInclude(i => i.Product)
-                .Where(o => o.UserId == userId)
-                .OrderByDescending(o => o.CreatedAt)
-                .AsNoTracking()
-                .ToListAsync();
-
+            var orders = await _orderRepository.GetByUserIdAsync(userId);
             return _mapper.Map<List<OrderResponseDTO>>(orders);
         }
 
         public async Task<List<OrderResponseDTO>> GetAllOrdersAsync()
         {
-            var orders = await _context.Orders
-                .Include(o => o.Items)
-                .ThenInclude(i => i.Product)
-                .OrderByDescending(o => o.CreatedAt)
-                .AsNoTracking()
-                .ToListAsync();
-
+            var orders = await _orderRepository.GetAllAsync();
             return _mapper.Map<List<OrderResponseDTO>>(orders);
         }
 
         public async Task<OrderResponseDTO> UpdateStatusAsync(Guid orderId, OrderStatus status)
         {
-            var order = await _context.Orders
-                .FirstOrDefaultAsync(o => o.Id == orderId);
-
-            if (order == null)
-                throw new NotFoundException("Order not found.");
+            var order = await _orderRepository.GetByIdAsync(orderId)
+                ?? throw new NotFoundException("Order not found.");
 
             order.Status = status;
-            await _context.SaveChangesAsync();
+            await _orderRepository.SaveChangesAsync();
 
             return _mapper.Map<OrderResponseDTO>(order);
         }

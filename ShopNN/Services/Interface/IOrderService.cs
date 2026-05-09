@@ -1,5 +1,6 @@
 using ShopNN.DTOs;
 using ShopNN.Entities;
+using ShopNN.Shared.Enums;
 
 namespace ShopNN.Services.Interface
 {

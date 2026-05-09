@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShopNN.DTOs;
 using ShopNN.Services.Interface;
-using ShopNN.Exceptions;
+using ShopNN.Shared.Exeptions;
 using ShopNN.Shared.Wrappers;
 
 namespace ShopNN.Controllers

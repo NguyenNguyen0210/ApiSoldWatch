@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using ShopNN.DTOs;
 using ShopNN.Entities;
 using ShopNN.Services.Interface;
-using ShopNN.Exceptions;
+using ShopNN.Shared.Exeptions;
 
 namespace ShopNN.Services.Implement
 {

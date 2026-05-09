@@ -2,55 +2,47 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ShopNN.DTOs;
 using ShopNN.Entities;
+using ShopNN.Repositories.Interface;
 using ShopNN.Services.Interface;
-using ShopNN.Exceptions;
+using ShopNN.Shared.Exeptions;
 
 namespace ShopNN.Services.Implement
 {
     public class CartService : ICartService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ICartRepository _cartRepository;
+        private readonly IProductRepository _productRepository;
         private readonly IMapper _mapper;
 
-        public CartService(ApplicationDbContext context, IMapper mapper)
+        public CartService(ICartRepository cartRepository ,IMapper mapper, IProductRepository productRepository)
         {
-            _context = context;
+            _productRepository = productRepository;
+            _cartRepository = cartRepository;
             _mapper = mapper;
         }
+        public async Task<CartResponseDTO> GetCartByIdAsync(Guid Id)
+        {
+            var cart = await _cartRepository.GetByIdAsync(Id);
+            if (cart == null) throw new NotFoundException($"Cart Id: {Id} Not Found");
+            return _mapper.Map<CartResponseDTO>( cart );
 
+        }
 
         public async Task<CartResponseDTO> GetCartByUserIdAsync(Guid userId)
         {
-            var cart = await _context.Carts
-                .AsNoTracking()
-                .Where(c => c.UserId == userId)
-                .Select(c => new CartResponseDTO
-                {
-                    Id = c.Id,
-                    UserId = c.UserId,
-                    Items = c.Items.Select(i => new CartItemResponseDTO
-                    {
-                        Id = i.Id,
-                        ProductId = i.ProductId,
-                        Quantity = i.Quantity,
-                        ProductName = i.Product.Name,
-                        ProductPrice = i.Product.Price,
-                        ProductImageUrl = i.Product.ImageUrl
-                    }).ToList()
-                })
-                .FirstOrDefaultAsync();
+            var cart = await _cartRepository.GetCartByUserIdAsync(userId);
 
-            if (cart != null) return cart;
+            if (cart != null) return _mapper.Map<CartResponseDTO>(cart);
 
             var creatCart = new Cart()
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
             };
 
-            await _context.Carts.AddAsync(creatCart);
-            await _context.SaveChangesAsync();
+            await _cartRepository.AddAsync(creatCart);
             return _mapper.Map<CartResponseDTO>(creatCart);
         }
 
@@ -58,11 +50,12 @@ namespace ShopNN.Services.Implement
         {
             if (dto.Quantity <= 0) throw new BadRequestException("Quantity must be greater than 0");
 
-            var product = await _context.Products
-                .AsNoTracking()
-                .Where(p => p.Id == dto.ProductId)
-                .Select(p => new { p.Id, p.Stock })
-                .FirstOrDefaultAsync();
+            var product = await _productRepository.GetByIdAsync(dto.ProductId);
+                //_context.Products
+                //.AsNoTracking()
+                //.Where(p => p.Id == dto.ProductId)
+                //.Select(p => new { p.Id, p.Stock })
+                //.FirstOrDefaultAsync();
 
             if (product == null)
                 throw new NotFoundException("Product not found");
@@ -70,92 +63,97 @@ namespace ShopNN.Services.Implement
             if (product.Stock < dto.Quantity)
                 throw new BadRequestException("Not enough stock");
 
-            var cart = await _context.Carts
-                .FirstOrDefaultAsync(c => c.UserId == userId);
+            var cart = await _cartRepository.GetCartByUserIdAsync(userId) ;
 
-            var existingItem = await _context.CartItems
-                .FirstOrDefaultAsync(i => i.CartId == cart.Id && i.ProductId == dto.ProductId);
+            if (cart == null)
+            {
+                cart = new Cart
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                await _cartRepository.AddAsync(cart);
+            }
+
+            var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId);
 
             if (existingItem != null)
             {
-                existingItem.Quantity += dto.Quantity;
+                var newQuantity = existingItem.Quantity + dto.Quantity;
+                if (newQuantity > product.Stock)
+                    throw new BadRequestException(
+                        $"Not enough stock. Available: {product.Stock}, In cart: {existingItem.Quantity}");
+
+                existingItem.Quantity = newQuantity;
             }
             else
             {
-                await _context.CartItems.AddAsync(new CartItem
+                var newItem = new CartItem()
                 {
                     Id = Guid.NewGuid(),
                     CartId = cart.Id,
                     ProductId = dto.ProductId,
                     Quantity = dto.Quantity
 
-                });
+                };
+
+                cart.UpdatedAt = DateTime.UtcNow;
+                
+                cart.Items.Add(newItem);
             }
+            await _cartRepository.SaveChangeAsync();
 
-            cart.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            return await GetCartByUserIdAsync(userId);
+            var updateCart = await _cartRepository.GetCartByUserIdAsync(userId);
+            return _mapper.Map<CartResponseDTO>(updateCart);
         }
 
         public async Task<CartResponseDTO> UpdateItemQuantityAsync(Guid userId, Guid cartItemId, CartItemUpdateDTO dto)
         {
-            var item = await _context.CartItems
-                .Include(i => i.Cart)
-                .FirstOrDefaultAsync(i => i.Id == cartItemId && i.Cart.UserId == userId);
+            var cart = await _cartRepository.GetCartByUserIdAsync(userId) ?? throw new NotFoundException("Cart Not Found");
+            var item = cart.Items.FirstOrDefault(x => x.Id == cartItemId) ?? throw new NotFoundException("Cart item not found");
 
-            if (item == null)
-                throw new NotFoundException("Cart item not found");
 
-            if (dto.Quantity <= 0)
-            {
-                _context.CartItems.Remove(item);
-            }
-            else
-            {
-                item.Quantity = dto.Quantity;
-            }
+            if (item.Product.Stock < dto.Quantity)
+                    throw new BadRequestException("Not enough stock");
+
+            item.Quantity = dto.Quantity;
+            
 
             item.Cart.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            return await GetCartByUserIdAsync(userId);
+            await _cartRepository.SaveChangeAsync();
+            var updateCart = await _cartRepository.GetCartByUserIdAsync(userId);
+            return _mapper.Map<CartResponseDTO>(updateCart);
         }
 
         public async Task<CartResponseDTO> RemoveItemFromCartAsync(Guid userId, Guid cartItemId)
         {
-            var item = await _context.CartItems
-                .Include(i => i.Cart)
-                .FirstOrDefaultAsync(i => i.Id == cartItemId && i.Cart.UserId == userId);
-            if(item == null) throw new NotFoundException("Item not found");
+            var cart = await _cartRepository.GetCartByUserIdAsync(userId) ?? throw new NotFoundException("Cart Not Found");
+            var item = cart.Items.FirstOrDefault(x => x.Id == cartItemId) ?? throw new NotFoundException("Cart item not found");
+            await _cartRepository.DeleteItemAsync(cartItemId);
+            cart.UpdatedAt = DateTime.UtcNow;
+            await _cartRepository.SaveChangeAsync();
 
-            item.Cart.UpdatedAt = DateTime.UtcNow;
-            _context.CartItems.Remove(item);
-            await _context.SaveChangesAsync();
-            
-
-            return await GetCartByUserIdAsync(userId);
+            var updatedCart = await _cartRepository.GetCartByUserIdAsync(userId);
+            return _mapper.Map<CartResponseDTO>(updatedCart);
         }
 
-        public async Task<bool> ClearCartAsync(Guid userId)
+        public async Task ClearCartAsync(Guid userId)
         {
-            var cart = await _context.Carts
-                .FirstOrDefaultAsync(c => c.UserId == userId);
+            var cart = await _cartRepository.GetCartByUserIdAsync(userId)
+      ?? throw new NotFoundException("Cart not found");
 
-            if (cart == null) return true;
+            // 2. Kiểm tra cart có item không
+            if (!cart.Items.Any())
+                throw new BadRequestException("Cart is already empty");
 
-            var items = await _context.CartItems
-                .Where(i => i.CartId == cart.Id)
-                .ToListAsync();
+            // 3. Xóa toàn bộ item
+            await _cartRepository.ClearCartAsync(cart.Id);
 
-            if (items.Any())
-            {
-                _context.CartItems.RemoveRange(items);
-                cart.UpdatedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
-            }
-
-            return true;
+            // 4. Cập nhật UpdatedAt
+            cart.UpdatedAt = DateTime.UtcNow;
+            await _cartRepository.SaveChangeAsync();
         }
     }
 }

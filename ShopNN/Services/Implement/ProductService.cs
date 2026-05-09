@@ -2,19 +2,20 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ShopNN.DTOs;
 using ShopNN.Entities;
+using ShopNN.Repositories.Interface;
 using ShopNN.Services.Interface;
-using ShopNN.Exceptions;
+using ShopNN.Shared.Exeptions;
 
 namespace ShopNN.Services.Implement
 {
     public class ProductService : IProductService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IProductRepository _productRepository;
         private readonly IMapper _mapper;
 
-        public ProductService(ApplicationDbContext context, IMapper mapper)
+        public ProductService(IProductRepository productRepository, IMapper mapper)
         {
-            _context = context;
+            _productRepository = productRepository;
             _mapper = mapper;
         }
 
@@ -23,40 +24,27 @@ namespace ShopNN.Services.Implement
             var product = _mapper.Map<Product>(dto);
             product.Id = Guid.NewGuid();
 
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
+            await _productRepository.AddAsync(product);
 
             return _mapper.Map<ProductResponseDTO>(product);
         }
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var product = await _context.Products.FindAsync(id);
-            if (product == null)
-                return false;
-
-            _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
-
+            await _productRepository.DeleteAsync(id);
             return true;
         }
 
         public async Task<List<ProductResponseDTO>> GetAllAsync()
         {
-            var products = await _context.Products
-                .Include(p => p.Category)
-                .AsNoTracking()
-                .ToListAsync();
+            var products = await _productRepository.GetAllAsync();
 
             return _mapper.Map<List<ProductResponseDTO>>(products);
         }
 
         public async Task<ProductResponseDTO> GetByIdAsync(Guid id)
         {
-            var product = await _context.Products
-                .Include(p => p.Category)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id);
+            var product = await _productRepository.GetByIdAsync(id);
 
             if (product == null)
                 throw new NotFoundException("Product not found");
@@ -66,21 +54,16 @@ namespace ShopNN.Services.Implement
 
         public async Task<ProductResponseDTO> UpdateAsync(Guid id, ProductRequestDTO dto)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _productRepository.GetByIdAsync(id);
             if (product == null)
                 throw new NotFoundException("Product not found");
 
             _mapper.Map(dto, product);
+            await _productRepository.UpdateAsync(product);
 
-            await _context.SaveChangesAsync();
+            return _mapper.Map<ProductResponseDTO>(product);
 
-            // Fetch again with Category for the response
-            var updatedProduct = await _context.Products
-                .Include(p => p.Category)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id);
 
-            return _mapper.Map<ProductResponseDTO>(updatedProduct);
         }
     }
 }

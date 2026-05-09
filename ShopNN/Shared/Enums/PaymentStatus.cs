@@ -1,9 +1,10 @@
-namespace ShopNN.Entities;
-
-public enum PaymentStatus
+namespace ShopNN.Shared.Enums
 {
-    Unpaid,
-    Paid,
-    Failed,
-    Refunded
+    public enum PaymentStatus
+    {
+        Unpaid,
+        Paid,
+        Failed,
+        Refunded
+    }
 }

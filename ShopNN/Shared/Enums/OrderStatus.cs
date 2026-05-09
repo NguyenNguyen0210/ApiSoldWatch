@@ -1,10 +1,12 @@
-namespace ShopNN.Entities;
-
-public enum OrderStatus
+namespace ShopNN.Shared.Enums
 {
-    Pending,
-    Processing,
-    Shipped,
-    Delivered,
-    Cancelled
+    public enum OrderStatus
+    {
+        Pending,
+        Processing,
+        Shipped,
+        Delivered,
+        Cancelled
+    }
+
 }

@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36908.2
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ShopNN", "ShopNN", "{15C03A4D-C500-66EB-8C61-BCCFF173B1C6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{15C03A4D-C500-66EB-8C61-BCCFF173B1C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopNN.Web", "ShopNN\ShopNN.Web.csproj", "{D2EBAC75-43D0-472E-803D-D0484348802B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopNN", "ShopNN\ShopNN.csproj", "{D2EBAC75-43D0-472E-803D-D0484348802B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopNN.Tests", "ShopNN.Tests\ShopNN.Tests.csproj", "{943E1CC7-C1DC-44B8-9B97-9391BEAB7796}"
 EndProject

@@ -6,8 +6,9 @@ namespace ShopNN.Services.Interface
     {
         Task<CartResponseDTO> GetCartByUserIdAsync(Guid userId);
         Task<CartResponseDTO> AddItemToCartAsync(Guid userId, CartItemRequestDTO dto);
+        Task<CartResponseDTO> GetCartByIdAsync(Guid id);
         Task<CartResponseDTO> UpdateItemQuantityAsync(Guid userId, Guid cartItemId, CartItemUpdateDTO dto);
         Task<CartResponseDTO> RemoveItemFromCartAsync(Guid userId, Guid cartItemId);
-        Task<bool> ClearCartAsync(Guid userId);
+        Task ClearCartAsync(Guid userId);
     }
 }

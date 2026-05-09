@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using ShopNN.DTOs;
 using ShopNN.Services.Interface;
 using System.Security.Claims;
-using ShopNN.Exceptions;
+using ShopNN.Shared.Exeptions;
 using ShopNN.Shared.Wrappers;
-using ShopNN.Entities;
+using ShopNN.Shared.Enums;
 
 namespace ShopNN.Controllers
 {
@@ -43,15 +43,7 @@ namespace ShopNN.Controllers
             // 2. Handle VnPay payment if selected
             if (request.PaymentMethod == PaymentMethod.VnPay)
             {
-                var orderEntity = new Order 
-                { 
-                    Id = orderResponse.Id, 
-                    TotalAmount = orderResponse.TotalAmount, 
-                    CreatedAt = orderResponse.CreatedAt 
-                };
-                
-                var paymentUrl = _paymentService.CreatePaymentUrl(orderEntity, HttpContext);
-                orderResponse.PaymentUrl = paymentUrl;
+                orderResponse.PaymentUrl = await _paymentService.CreatePaymentUrlByOrderId(orderResponse.Id, HttpContext);
             }
 
             return Ok(ApiResponse<OrderResponseDTO>.SuccessResult(orderResponse, "Order created successfully."));
