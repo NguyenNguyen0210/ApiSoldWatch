@@ -15,23 +15,21 @@ namespace ShopNN.Repositories.Implement
         }
 
 
+        /// <summary>Removes cart lines in memory/context only; caller must <see cref="SaveChangeAsync"/> (or rely on upstream unit-of-work).</summary>
         public async Task ClearCartAsync(Guid CartId)
         {
             var items = await _context.CartItems
      .Where(ci => ci.CartId == CartId)
      .ToListAsync();
             _context.CartItems.RemoveRange(items);
-            await _context.SaveChangesAsync();
         }
 
+        /// <summary>Removes the item from context only; caller must persist with <see cref="SaveChangeAsync"/>.</summary>
         public async Task DeleteItemAsync(Guid itemId)
         {
             var item = await _context.CartItems.FindAsync(itemId)
                 ?? throw new NotFoundException("Cart item not found");
             _context.CartItems.Remove(item);
-            await _context.SaveChangesAsync();
-
-
         }
 
         public async override Task<Cart?> GetByIdAsync(Guid id)

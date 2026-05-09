@@ -76,8 +76,7 @@ namespace ShopNN.Services.Implement
                 cart.Items.Clear();
                 cart.UpdatedAt = DateTime.UtcNow;
 
-                await _orderRepository.AddAsync(order);
-                await _orderRepository.SaveChangesAsync();
+                await _orderRepository.AddAsync(order); /* GenericRepository.AddAsync persists full ChangeTracker cart + stocks + order */
                 await transaction.CommitAsync();
 
                 return _mapper.Map<OrderResponseDTO>(order);

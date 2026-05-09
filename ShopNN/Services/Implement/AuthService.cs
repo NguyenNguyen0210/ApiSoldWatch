@@ -65,8 +65,7 @@ namespace ShopNN.Services.Implement
                 CreatedAt = DateTime.UtcNow,
             };
 
-            await _refreshTokenRepository.AddAsync(entity);
-            await _refreshTokenRepository.SaveChangesAsync();
+            await _refreshTokenRepository.AddAsync(entity); /* GenericRepository.AddAsync already SaveChanges */
         }
 
         public async Task Revoke(string refreshToken)
