@@ -111,6 +111,8 @@ namespace ShopNN.Services.Implement
 
         public async Task<CartResponseDTO> UpdateItemQuantityAsync(Guid userId, Guid cartItemId, CartItemUpdateDTO dto)
         {
+            if (dto.Quantity <= 0) throw new BadRequestException("Quantity must be at least 1");
+
             var cart = await _cartRepository.GetCartByUserIdAsync(userId) ?? throw new NotFoundException("Cart Not Found");
             var item = cart.Items.FirstOrDefault(x => x.Id == cartItemId) ?? throw new NotFoundException("Cart item not found");
 

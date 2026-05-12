@@ -2,14 +2,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Serilog;
 using ShopNN.Entities;
+using ShopNN.Middleware;
+using ShopNN.Repositories.Implement;
+using ShopNN.Repositories.Interface;
 using ShopNN.Services.Implement;
 using ShopNN.Services.Interface;
 using System.Text;
-using Serilog;
-using ShopNN.Middleware;
-using ShopNN.Repositories.Interface;
-using ShopNN.Repositories.Implement;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +28,27 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Shop API",
+        Version = "v1"
+    });
+
+    // JWT Auth
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Nhập JWT token dạng: Bearer {your token}"
+    });
+
+    
+});
 builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRespository, CategoryRespository>();

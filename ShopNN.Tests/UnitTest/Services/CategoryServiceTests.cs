@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
+using Humanizer;
 using Moq;
 using ShopNN.DTOs;
 using ShopNN.Entities;
@@ -27,11 +28,12 @@ public class CategoryServiceTests
     private static Category MakeCategory(Guid? id = null) => new()
     {
         Id = id ?? Guid.NewGuid(),
-        Name = "Test Cat"
+        Name = "Test Category"
     };
 
+    #region GetAllAsync
     [Fact]
-    public async Task GetAllAsync_ShouldReturnAllCategories()
+    public async Task GetAllAsync_WhenCalled_ShouldReturnAllCategories()
     {
         var list = new List<Category> { MakeCategory(), MakeCategory() };
         _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(list);
@@ -41,19 +43,32 @@ public class CategoryServiceTests
         result.Should().HaveCount(2);
         _repoMock.Verify(r => r.GetAllAsync(), Times.Once);
     }
+    [Fact]
+    public async Task GetAllAsync_WhenEmpty_ShouldReturnEmptyList()
+    {
+        _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Category>());
 
+        var result = await _sut.GetAllAsync();
+
+        result.Should().BeEmpty();
+        _repoMock.Verify(r => r.GetAllAsync(), Times.Once);
+    }
+    #endregion
+
+    #region GetByIdAsync
     [Fact]
     public async Task GetByIdAsync_WhenExists_ShouldReturnCategory()
     {
         var id = Guid.NewGuid();
-        var cat = MakeCategory(id);
-        _repoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(cat);
+        var category = MakeCategory(id);
+        _repoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(category);
 
         var result = await _sut.GetByIdAsync(id);
 
         result.Should().NotBeNull();
         result.Id.Should().Be(id);
-        result.Name.Should().Be(cat.Name);
+        result.Name.Should().Be(category.Name);
+        _repoMock.Verify(r => r.GetByIdAsync(id), Times.Once);
     }
 
     [Fact]
@@ -65,12 +80,14 @@ public class CategoryServiceTests
 
         await act.Should().ThrowAsync<NotFoundException>().WithMessage("Category not found");
     }
+    #endregion
 
+    #region CreateAsync
     [Fact]
-    public async Task CreateAsync_ShouldCreateAndReturnCategory()
+    public async Task CreateAsync_WhenValid_ShouldCreateAndReturnCategory()
     {
         var dto = new CategoryRequestDTO { Name = "Books" };
-        _repoMock.Setup(r => r.AddAsync(It.IsAny<Category>())).ReturnsAsync((Category c) => c);
+        _repoMock.Setup(r => r.AddAsync(It.IsAny<Category>())).ReturnsAsync((ShopNN.Entities.Category c) => c);
 
         var result = await _sut.CreateAsync(dto);
 
@@ -78,7 +95,21 @@ public class CategoryServiceTests
         result.Name.Should().Be("Books");
         _repoMock.Verify(r => r.AddAsync(It.IsAny<Category>()), Times.Once);
     }
+    [Fact]
+    public async Task CreateAsync_WhenValid_ShouldGenerateNewId()
+    {
+        Guid capturedId = Guid.Empty;
 
+        _repoMock.Setup(r => r.AddAsync(It.IsAny<Category>()))
+                 .Callback<Category>(c => capturedId = c.Id).ReturnsAsync((ShopNN.Entities.Category c) => c);
+
+        var dto = new ShopNN.DTOs.CategoryRequestDTO { Name = "Books" }; await _sut.CreateAsync(dto);
+
+        capturedId.Should().NotBe(Guid.Empty);
+    }
+    #endregion
+
+    #region UpdateAsync
     [Fact]
     public async Task UpdateAsync_WhenExists_ShouldUpdate()
     {
@@ -101,12 +132,25 @@ public class CategoryServiceTests
 
         var act = async () => await _sut.UpdateAsync(Guid.NewGuid(), new CategoryRequestDTO { Name = "x" });
 
-        await act.Should().ThrowAsync<NotFoundException>();
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("Category not found");
         _repoMock.Verify(r => r.UpdateAsync(It.IsAny<Category>()), Times.Never);
     }
+    #endregion
 
+    #region DeleteAsync
     [Fact]
-    public async Task DeleteAsync_ShouldCallRepoAndReturnTrue()
+    public async Task DeleteAsync_WhenRepositoryThrows_ShouldPropagate()
+    {
+        var id = Guid.NewGuid();
+        _repoMock.Setup(r => r.DeleteAsync(id)).ThrowsAsync(new NotFoundException("Category not found"));
+
+        var act = async () => await _sut.DeleteAsync(id);
+
+        await act.Should().ThrowAsync<NotFoundException>().WithMessage("Category not found");
+        _repoMock.Verify(r => r.DeleteAsync(id), Times.Once);
+    }
+    [Fact]
+    public async Task DeleteAsync_WhenValid_ShouldCallRepoAndReturnTrue()
     {
         var id = Guid.NewGuid();
         _repoMock.Setup(r => r.DeleteAsync(id)).Returns(Task.CompletedTask);
@@ -116,4 +160,9 @@ public class CategoryServiceTests
         ok.Should().BeTrue();
         _repoMock.Verify(r => r.DeleteAsync(id), Times.Once);
     }
+    #endregion
+
 }
+
+
+

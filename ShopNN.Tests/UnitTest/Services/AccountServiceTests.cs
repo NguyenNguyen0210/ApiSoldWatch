@@ -2,6 +2,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Moq;
 using ShopNN.DTOs;
 using ShopNN.Entities;
@@ -13,6 +14,16 @@ namespace ShopNN.Tests.Services;
 
 public class AccountServiceTests
 {
+    private readonly Mock<IAuthService> _auth = new();
+    private readonly Mock<UserManager<ApplicationUser>> _um = UserManagerStub();
+    private readonly Mock<RoleManager<ApplicationRole>> _rm = RoleManagerStub();
+    private readonly AccountService _sut;
+
+    public AccountServiceTests()
+    {
+        _sut = new AccountService(_auth.Object, _um.Object, _rm.Object);
+    }
+
     private static Mock<UserManager<ApplicationUser>> UserManagerStub()
     {
         var store = Mock.Of<IUserStore<ApplicationUser>>();
@@ -39,140 +50,198 @@ public class AccountServiceTests
             Mock.Of<ILogger<RoleManager<ApplicationRole>>>());
     }
 
-    [Fact]
-    public async Task SignIn_WhenUserMissing_ShouldThrowNotFound()
+    private static ApplicationUser MakeUser(string username = "testuser") => new()
     {
-        var auth = new Mock<IAuthService>();
-        var um = UserManagerStub();
-        um.Setup(m => m.FindByNameAsync("noone")).ReturnsAsync((ApplicationUser?)null);
+        Id       = Guid.NewGuid(),
+        UserName = username,
+        Email    = $"{username}@mail.com"
+    };
 
-        var sut = new AccountService(auth.Object, um.Object, RoleManagerStub().Object);
+    private static TokenResponseDTO MakeTokens() => new()
+    {
+        AccessToken  = "access-token",
+        RefreshToken = "refresh-token"
+    };
 
-        var act = async () => await sut.SignIn(new SignInDTO { Username = "noone", Password = "x" });
+    #region SignIn
+    [Fact]
+    public async Task SignIn_WhenUserNotFound_ShouldThrowNotFoundException()
+    {
+        _um.Setup(m => m.FindByNameAsync("nguyen"))
+           .ReturnsAsync((ApplicationUser?)null);
 
-        await act.Should().ThrowAsync<NotFoundException>().WithMessage("User not found");
-        auth.Verify(a => a.GenerateTokenAsync(It.IsAny<ApplicationUser>()), Times.Never);
+        var act = async () => await _sut.SignIn(new SignInDTO { Username = "nguyen", Password = "Top1zuka@" });
+
+        await act.Should().ThrowAsync<NotFoundException>()
+                 .WithMessage("User not found");
+
+        _auth.Verify(a => a.GenerateTokenAsync(It.IsAny<ApplicationUser>()), Times.Never);
     }
 
     [Fact]
-    public async Task SignIn_WhenPasswordWrong_ShouldThrowBadRequest()
+    public async Task SignIn_WhenPasswordIncorrect_ShouldThrowBadRequestException()
     {
-        var auth = new Mock<IAuthService>();
-        var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = "a" };
-        var um = UserManagerStub();
-        um.Setup(m => m.FindByNameAsync("a")).ReturnsAsync(user);
-        um.Setup(m => m.CheckPasswordAsync(user, "bad")).ReturnsAsync(false);
+        var user = MakeUser();
+        _um.Setup(m => m.FindByNameAsync(user.UserName!)).ReturnsAsync(user);
+        _um.Setup(m => m.CheckPasswordAsync(user, "wrong")).ReturnsAsync(false);
 
-        var sut = new AccountService(auth.Object, um.Object, RoleManagerStub().Object);
+        var act = async () => await _sut.SignIn(new SignInDTO { Username = user.UserName!, Password = "wrong" });
 
-        var act = async () => await sut.SignIn(new SignInDTO { Username = "a", Password = "bad" });
+        await act.Should().ThrowAsync<BadRequestException>()
+                 .WithMessage("Password Incorrect");
 
-        await act.Should().ThrowAsync<BadRequestException>().WithMessage("Password Incorrect");
+        _auth.Verify(a => a.GenerateTokenAsync(It.IsAny<ApplicationUser>()), Times.Never);
     }
 
     [Fact]
-    public async Task SignIn_WhenOk_ShouldReturnTokens()
+    public async Task SignIn_WhenCredentialsValid_ShouldReturnTokens()
     {
-        var auth = new Mock<IAuthService>();
-        var user = new ApplicationUser { Id = Guid.NewGuid(), UserName = "a" };
-        var um = UserManagerStub();
-        um.Setup(m => m.FindByNameAsync("a")).ReturnsAsync(user);
-        um.Setup(m => m.CheckPasswordAsync(user, "ok")).ReturnsAsync(true);
+        var user   = MakeUser();
+        var tokens = MakeTokens();
 
-        auth.Setup(a => a.GenerateTokenAsync(user))
-            .ReturnsAsync(new TokenResponseDTO { AccessToken = "jwt", RefreshToken = "r1" });
+        _um.Setup(m => m.FindByNameAsync(user.UserName!)).ReturnsAsync(user);
+        _um.Setup(m => m.CheckPasswordAsync(user, "correct")).ReturnsAsync(true);
+        _auth.Setup(a => a.GenerateTokenAsync(user)).ReturnsAsync(tokens);
 
-        var sut = new AccountService(auth.Object, um.Object, RoleManagerStub().Object);
+        var result = await _sut.SignIn(new SignInDTO { Username = user.UserName!, Password = "correct" });
 
-        var tokens = await sut.SignIn(new SignInDTO { Username = "a", Password = "ok" });
-
-        tokens.AccessToken.Should().Be("jwt");
-        tokens.RefreshToken.Should().Be("r1");
+        result.AccessToken.Should().Be(tokens.AccessToken);
+        result.RefreshToken.Should().Be(tokens.RefreshToken);
+        _auth.Verify(a => a.GenerateTokenAsync(user), Times.Once);
     }
 
     [Fact]
-    public async Task SignUp_WhenCreateFails_ShouldReturnIdentityResultWithoutRoleWork()
+    public async Task SignIn_WhenTokenGenerationFails_ShouldPropagate()
     {
-        var um = UserManagerStub();
-        um.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
-            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "fail" }));
+        var user = MakeUser();
+        _um.Setup(m => m.FindByNameAsync(user.UserName!)).ReturnsAsync(user);
+        _um.Setup(m => m.CheckPasswordAsync(user, "ok")).ReturnsAsync(true);
+        _auth.Setup(a => a.GenerateTokenAsync(user))
+             .ThrowsAsync(new Exception("Token service down"));
 
-        var sut = new AccountService(Mock.Of<IAuthService>(), um.Object, RoleManagerStub().Object);
+        var act = async () => await _sut.SignIn(new SignInDTO { Username = user.UserName!, Password = "ok" });
 
-        var result = await sut.SignUp(new SignUpDTO { Username = "u", Password = "P@ss123!", Email = "u@mail.com" });
+        await act.Should().ThrowAsync<Exception>()
+                 .WithMessage("Token service down");
+    }
+    #endregion
+
+    #region SignUp
+    [Fact]
+    public async Task SignUp_WhenCreateFails_ShouldReturnFailedResult()
+    {
+        _um.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
+           .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Email taken" }));
+
+        var result = await _sut.SignUp(new SignUpDTO { Username = "u", Password = "P@ss123!", Email = "u@mail.com" });
 
         result.Succeeded.Should().BeFalse();
+
+        // Role không được gán khi create fail
+        _um.Verify(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public async Task SignUp_WhenSucceededAndRoleExists_ShouldAddRole()
+    public async Task SignUp_WhenSucceededAndRoleExists_ShouldAddRoleWithoutCreating()
     {
-        var auth = new Mock<IAuthService>();
-        var um = UserManagerStub();
-        um.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
-        um.Setup(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), "User")).ReturnsAsync(IdentityResult.Success);
-        var roles = RoleManagerStub();
-        roles.Setup(r => r.RoleExistsAsync("User")).ReturnsAsync(true);
+        _um.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
+           .ReturnsAsync(IdentityResult.Success);
+        _um.Setup(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), "User"))
+           .ReturnsAsync(IdentityResult.Success);
+        _rm.Setup(r => r.RoleExistsAsync("User")).ReturnsAsync(true);
 
-        var sut = new AccountService(auth.Object, um.Object, roles.Object);
-
-        var result = await sut.SignUp(new SignUpDTO { Username = "u", Password = "P@ss123!", Email = "u@mail.com" });
+        var result = await _sut.SignUp(new SignUpDTO { Username = "u", Password = "P@ss123!", Email = "u@mail.com" });
 
         result.Succeeded.Should().BeTrue();
-        um.Verify(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), "User"), Times.Once);
+
+        // Role đã tồn tại → không cần tạo mới
+        _rm.Verify(r => r.CreateAsync(It.IsAny<ApplicationRole>()), Times.Never);
+        _um.Verify(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), "User"), Times.Once);
     }
 
     [Fact]
-    public async Task RefreshToken_ShouldForwardToAuth()
+    public async Task SignUp_WhenSucceededAndRoleNotExists_ShouldCreateRoleThenAdd()
     {
-        var auth = new Mock<IAuthService>();
-        auth.Setup(a => a.RefreshToken("tok")).ReturnsAsync(new TokenResponseDTO { AccessToken = "na", RefreshToken = "nr" });
-        var um = UserManagerStub();
-        var sut = new AccountService(auth.Object, um.Object, RoleManagerStub().Object);
+        _um.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
+           .ReturnsAsync(IdentityResult.Success);
+        _um.Setup(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), "User"))
+           .ReturnsAsync(IdentityResult.Success);
+        _rm.Setup(r => r.RoleExistsAsync("User")).ReturnsAsync(false);
+        _rm.Setup(r => r.CreateAsync(It.IsAny<ApplicationRole>()))
+           .ReturnsAsync(IdentityResult.Success);
 
-        var r = await sut.RefreshToken(new RefreshTokenRequestDTO { Token = "tok" });
+        var result = await _sut.SignUp(new SignUpDTO { Username = "u", Password = "P@ss123!", Email = "u@mail.com" });
 
-        r.RefreshToken.Should().Be("nr");
-        auth.Verify(a => a.RefreshToken("tok"), Times.Once);
+        result.Succeeded.Should().BeTrue();
+
+        _rm.Verify(r => r.CreateAsync(It.IsAny<ApplicationRole>()), Times.Once);
+        _um.Verify(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), "User"), Times.Once);
+    }
+    #endregion
+
+
+    #region RefreshToken
+    [Fact]
+    public async Task RefreshToken_WhenCalled_ShouldDelegateToAuthService()
+    {
+        var tokens = MakeTokens();
+        _auth.Setup(a => a.RefreshToken("old-token")).ReturnsAsync(tokens);
+
+        var result = await _sut.RefreshToken(new RefreshTokenRequestDTO { Token = "old-token" });
+
+        result.AccessToken.Should().Be(tokens.AccessToken);
+        result.RefreshToken.Should().Be(tokens.RefreshToken);
+        _auth.Verify(a => a.RefreshToken("old-token"), Times.Once);
     }
 
     [Fact]
-    public async Task SignOut_ShouldRevokeViaAuth()
+    public async Task RefreshToken_WhenTokenInvalid_ShouldPropagate()
     {
-        var auth = new Mock<IAuthService>();
-        var um = UserManagerStub();
-        var sut = new AccountService(auth.Object, um.Object, RoleManagerStub().Object);
+        _auth.Setup(a => a.RefreshToken(It.IsAny<string>()))
+             .ThrowsAsync(new SecurityTokenException("Invalid or expired refresh token."));
 
-        await sut.SignOut(new RefreshTokenRequestDTO { Token = "t" });
+        var act = async () => await _sut.RefreshToken(new RefreshTokenRequestDTO { Token = "bad" });
 
-        auth.Verify(a => a.Revoke("t"), Times.Once);
+        await act.Should().ThrowAsync<SecurityTokenException>();
+    }
+    #endregion
+
+
+    #region SignOut
+    [Fact]
+    public async Task SignOut_WhenCalled_ShouldRevokeTokenViaAuthService()
+    {
+        await _sut.SignOut(new RefreshTokenRequestDTO { Token = "token-to-revoke" });
+
+        _auth.Verify(a => a.Revoke("token-to-revoke"), Times.Once);
+    }
+    #endregion
+
+    #region FindByUserId
+    [Fact]
+    public async Task FindByUserId_WhenNotFound_ShouldThrowNotFoundException()
+    {
+        _um.Setup(m => m.FindByIdAsync(It.IsAny<string>()))
+           .ReturnsAsync((ApplicationUser?)null);
+
+        var act = async () => await _sut.FindByUserId(Guid.NewGuid().ToString());
+
+        await act.Should().ThrowAsync<NotFoundException>()
+                 .WithMessage("User not found");
     }
 
     [Fact]
-    public async Task FindByUserId_WhenMissing_ShouldThrow()
+    public async Task FindByUserId_WhenFound_ShouldReturnCorrectUser()
     {
-        var um = UserManagerStub();
-        um.Setup(m => m.FindByIdAsync(It.IsAny<string>())).ReturnsAsync((ApplicationUser?)null);
+        var user = MakeUser();
+        _um.Setup(m => m.FindByIdAsync(user.Id.ToString())).ReturnsAsync(user);
 
-        var sut = new AccountService(Mock.Of<IAuthService>(), um.Object, RoleManagerStub().Object);
+        var result = await _sut.FindByUserId(user.Id.ToString());
 
-        var act = async () => await sut.FindByUserId(Guid.NewGuid().ToString());
-
-        await act.Should().ThrowAsync<NotFoundException>().WithMessage("User not found");
-    }
-
-    [Fact]
-    public async Task FindByUserId_WhenFound_ShouldReturnUser()
-    {
-        var uid = Guid.NewGuid();
-        var user = new ApplicationUser { Id = uid, UserName = "uu" };
-        var um = UserManagerStub();
-        um.Setup(m => m.FindByIdAsync(uid.ToString())).ReturnsAsync(user);
-
-        var sut = new AccountService(Mock.Of<IAuthService>(), um.Object, RoleManagerStub().Object);
-
-        var found = await sut.FindByUserId(uid.ToString());
-
-        found.Id.Should().Be(uid);
+        result.Id.Should().Be(user.Id);
+        result.UserName.Should().Be(user.UserName);
+        _um.Verify(m => m.FindByIdAsync(user.Id.ToString()), Times.Once);
     }
 }
+#endregion
+

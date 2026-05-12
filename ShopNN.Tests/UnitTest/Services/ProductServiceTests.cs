@@ -1,5 +1,4 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using FluentAssertions;
 using Moq;
 using ShopNN.DTOs;
@@ -13,15 +12,12 @@ namespace ShopNN.Tests.Services
 {
     public class ProductServiceTests
     {
-        // ── Setup chung ──────────────────────────────────────
-        private readonly Mock<IProductRepository> _repoMock;
+        private readonly Mock<IProductRepository> _repoMock = new();
         private readonly IMapper _mapper;
         private readonly ProductService _sut;
 
         public ProductServiceTests()
         {
-            _repoMock = new Mock<IProductRepository>();
-
             var config = new MapperConfiguration(cfg =>
                 cfg.AddProfile<MappingProfile>());
             _mapper = config.CreateMapper();
@@ -29,105 +25,92 @@ namespace ShopNN.Tests.Services
             _sut = new ProductService(_repoMock.Object, _mapper);
         }
 
-        // ── Helper ───────────────────────────────────────────
         private static Product MakeProduct(Guid? id = null) => new()
         {
-            Id = id ?? Guid.NewGuid(),
-            Name = "Test Product",
-            Description = "Description",
-            Price = 100_000,
-            Stock = 10
+            Id          = id ?? Guid.NewGuid(),
+            Name        = "Test Product",
+            Description = "Description Test Product",
+            Price       = 100000,
+            Stock       = 10,
+            CategoryId  = Guid.NewGuid()
         };
 
-        private static ProductRequestDTO MakeRequest() => new()
+        private static ProductRequestDTO MakeRequest(
+            string  name  = "New Product",
+            decimal price = 50000,
+            int     stock = 5) => new()
         {
-            Name = "New Product",
-            Description = "Desc",
-            Price = 50_000,
-            Stock = 5
+            Name        = name,
+            Description = "Description New Product",
+            Price       = price,
+            Stock       = stock
         };
-
-        // ════════════════════════════════════════════════════
-        // GetAllAsync
-        // ════════════════════════════════════════════════════
+        #region GetAllAsync
         [Fact]
-        public async Task GetAllAsync_ShouldReturnAllProducts()
+        public async Task GetAllAsync_WhenCalled_ShouldReturnAllProducts()
         {
-            // Arrange
-            var products = new List<Product> { MakeProduct(), MakeProduct() };
+            var products = new List<Product> {
+                MakeProduct(),
+                MakeProduct(),
+                MakeProduct(),
+            };
             _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(products);
-
-            // Act
             var result = await _sut.GetAllAsync();
 
-            // Assert
-            result.Should().HaveCount(2);
+            result.Should().HaveCount(3);
             _repoMock.Verify(r => r.GetAllAsync(), Times.Once);
         }
 
         [Fact]
         public async Task GetAllAsync_WhenEmpty_ShouldReturnEmptyList()
         {
-            // Arrange
             _repoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Product>());
 
-            // Act
             var result = await _sut.GetAllAsync();
 
-            // Assert
             result.Should().BeEmpty();
+            _repoMock.Verify(r => r.GetAllAsync(), Times.Once);
         }
-
-        // ════════════════════════════════════════════════════
-        // GetByIdAsync
-        // ════════════════════════════════════════════════════
+        #endregion
+        #region GetByIdAsync
         [Fact]
         public async Task GetByIdAsync_WhenExists_ShouldReturnProduct()
         {
-            // Arrange
-            var id = Guid.NewGuid();
+            var id      = Guid.NewGuid();
             var product = MakeProduct(id);
             _repoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(product);
 
-            // Act
             var result = await _sut.GetByIdAsync(id);
 
-            // Assert
             result.Should().NotBeNull();
             result.Id.Should().Be(id);
             result.Name.Should().Be(product.Name);
+            _repoMock.Verify(r => r.GetByIdAsync(id), Times.Once);
         }
 
         [Fact]
         public async Task GetByIdAsync_WhenNotFound_ShouldThrowNotFoundException()
         {
-            // Arrange
             _repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>()))
                      .ReturnsAsync((Product?)null);
 
-            // Act
             var act = async () => await _sut.GetByIdAsync(Guid.NewGuid());
 
-            // Assert
             await act.Should().ThrowAsync<NotFoundException>()
                      .WithMessage("Product not found");
         }
-
-        // ════════════════════════════════════════════════════
-        // CreateAsync
-        // ════════════════════════════════════════════════════
+        #endregion
+        #region CreateAsync
         [Fact]
-        public async Task CreateAsync_ShouldCreateAndReturnProduct()
+        public async Task CreateAsync_WhenValid_ShouldCreateAndReturnProduct()
         {
-            // Arrange
             var dto = MakeRequest();
+            var product = MakeProduct();
             _repoMock.Setup(r => r.AddAsync(It.IsAny<Product>()))
-                     .ReturnsAsync((Product p) => p);
+                     .ReturnsAsync(product); 
 
-            // Act
             var result = await _sut.CreateAsync(dto);
 
-            // Assert
             result.Should().NotBeNull();
             result.Name.Should().Be(dto.Name);
             result.Price.Should().Be(dto.Price);
@@ -135,48 +118,50 @@ namespace ShopNN.Tests.Services
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldGenerateNewId()
+        public async Task CreateAsync_WhenValid_ShouldGenerateNewId()
         {
-            // Arrange
-            var dto = MakeRequest();
             Guid capturedId = Guid.Empty;
 
             _repoMock.Setup(r => r.AddAsync(It.IsAny<Product>()))
                      .Callback<Product>(p => capturedId = p.Id)
                      .ReturnsAsync((Product p) => p);
 
-            // Act
-            await _sut.CreateAsync(dto);
+            await _sut.CreateAsync(MakeRequest());
 
-            // Assert — Id phải được generate, không phải Guid.Empty
             capturedId.Should().NotBe(Guid.Empty);
         }
 
-        // ════════════════════════════════════════════════════
-        // UpdateAsync
-        // ════════════════════════════════════════════════════
+        [Fact]
+        public async Task CreateAsync_WhenValid_ShouldMapDtoFieldsCorrectly()
+        {
+            var dto = MakeRequest(name: "iPhone 15", price: 999_000, stock: 20);
+            Product? captured = null;
+
+            _repoMock.Setup(r => r.AddAsync(It.IsAny<Product>()))
+                     .Callback<Product>(p => captured = p)
+                     .ReturnsAsync((Product p) => p);
+
+            await _sut.CreateAsync(dto);
+
+            captured!.Name.Should().Be("iPhone 15");
+            captured.Price.Should().Be(999_000);
+            captured.Stock.Should().Be(20);
+        }
+        #endregion
+        #region UpdateAsync
         [Fact]
         public async Task UpdateAsync_WhenExists_ShouldUpdateAndReturn()
         {
-            // Arrange
-            var id = Guid.NewGuid();
+            var id      = Guid.NewGuid();
             var product = MakeProduct(id);
-            var dto = new ProductRequestDTO
-            {
-                Name = "Updated",
-                Description = "Updated desc",
-                Price = 200_000,
-                Stock = 3
-            };
+            var dto     = MakeRequest(name: "Updated", price: 200_000);
 
             _repoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync(product);
             _repoMock.Setup(r => r.UpdateAsync(It.IsAny<Product>()))
                      .Returns(Task.CompletedTask);
 
-            // Act
             var result = await _sut.UpdateAsync(id, dto);
 
-            // Assert
             result.Name.Should().Be("Updated");
             result.Price.Should().Be(200_000);
             _repoMock.Verify(r => r.UpdateAsync(It.IsAny<Product>()), Times.Once);
@@ -185,34 +170,26 @@ namespace ShopNN.Tests.Services
         [Fact]
         public async Task UpdateAsync_WhenNotFound_ShouldThrowNotFoundException()
         {
-            // Arrange
             _repoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>()))
                      .ReturnsAsync((Product?)null);
 
-            // Act
             var act = async () => await _sut.UpdateAsync(Guid.NewGuid(), MakeRequest());
 
-            // Assert
             await act.Should().ThrowAsync<NotFoundException>()
                      .WithMessage("Product not found");
 
             _repoMock.Verify(r => r.UpdateAsync(It.IsAny<Product>()), Times.Never);
         }
-
-        // ════════════════════════════════════════════════════
-        // DeleteAsync
-        // ════════════════════════════════════════════════════
+        #endregion
+        #region DeleteAsync
         [Fact]
-        public async Task DeleteAsync_ShouldCallRepositoryAndReturnTrue()
+        public async Task DeleteAsync_WhenValid_ShouldCallRepositoryAndReturnTrue()
         {
-            // Arrange
             var id = Guid.NewGuid();
             _repoMock.Setup(r => r.DeleteAsync(id)).Returns(Task.CompletedTask);
 
-            // Act
             var result = await _sut.DeleteAsync(id);
 
-            // Assert
             result.Should().BeTrue();
             _repoMock.Verify(r => r.DeleteAsync(id), Times.Once);
         }
@@ -220,15 +197,14 @@ namespace ShopNN.Tests.Services
         [Fact]
         public async Task DeleteAsync_WhenRepositoryThrows_ShouldPropagate()
         {
-            // Arrange
             _repoMock.Setup(r => r.DeleteAsync(It.IsAny<Guid>()))
                      .ThrowsAsync(new NotFoundException("Product not found"));
 
-            // Act
             var act = async () => await _sut.DeleteAsync(Guid.NewGuid());
 
-            // Assert
-            await act.Should().ThrowAsync<NotFoundException>();
+            await act.Should().ThrowAsync<NotFoundException>()
+                     .WithMessage("Product not found");
         }
+        #endregion
     }
 }
