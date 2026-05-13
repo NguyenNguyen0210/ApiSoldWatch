@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ShopNN.DTOs;
 using ShopNN.Entities;
 using ShopNN.Repositories.Interface;
@@ -34,11 +34,12 @@ namespace ShopNN.Repositories.Implement
 
         }
 
-        public async override Task<Cart?> GetByIdAsync(Guid id)
+        public async override Task<Cart?> GetByIdAsync(object id)
         {
+            Guid guidId = id is Guid g ? g : Guid.Parse(id.ToString()!);
             var cart = await _context.Carts
                 .AsNoTracking()
-                .Where(c => c.Id == id)
+                .Where(c => c.Id == guidId)
                 .Include(c => c.Items)
                 .ThenInclude(c => c.Product)
                 .FirstOrDefaultAsync();

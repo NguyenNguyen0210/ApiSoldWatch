@@ -11,10 +11,10 @@ namespace ShopNN.Services.Implement
 {
     public class CategoryService : ICategoryService
     {
-        private readonly ICategoryRespository _categoryRepository;
+        private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
 
-        public CategoryService(ICategoryRespository categoryRepository, IMapper mapper)
+        public CategoryService(ICategoryRepository categoryRepository, IMapper mapper)
         {
             _categoryRepository = categoryRepository;
             _mapper = mapper;
@@ -23,14 +23,13 @@ namespace ShopNN.Services.Implement
         public async Task<CategoryResponseDTO> CreateAsync(CategoryRequestDTO dto)
         {
             var category = _mapper.Map<Category>(dto);
-            category.Id = Guid.NewGuid();
 
             await _categoryRepository.AddAsync(category);
 
             return _mapper.Map<CategoryResponseDTO>(category);
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task<bool> DeleteAsync(int id)
         {
             await _categoryRepository.DeleteAsync(id);
             return true;
@@ -42,14 +41,14 @@ namespace ShopNN.Services.Implement
             return _mapper.Map<List<CategoryResponseDTO>>(categories);
         }
 
-        public async Task<CategoryResponseDTO> GetByIdAsync(Guid id)
+        public async Task<CategoryResponseDTO> GetByIdAsync(int id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null) throw new NotFoundException("Category not found");
             return _mapper.Map<CategoryResponseDTO>(category);
         }
 
-        public async Task<CategoryResponseDTO> UpdateAsync(Guid id, CategoryRequestDTO dto)
+        public async Task<CategoryResponseDTO> UpdateAsync(int id, CategoryRequestDTO dto)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null) throw new NotFoundException("Category not found");

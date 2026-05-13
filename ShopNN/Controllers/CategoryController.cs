@@ -1,3 +1,4 @@
+using ShopNN.Shared.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShopNN.DTOs;
@@ -26,13 +27,13 @@ namespace ShopNN.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetById(int id)
         {
             var category = await _categoryService.GetByIdAsync(id);
             return Ok(ApiResponse<CategoryResponseDTO>.SuccessResult(category, "Category retrieved successfully"));
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.Admin)]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CategoryRequestDTO dto)
         {
@@ -41,18 +42,18 @@ namespace ShopNN.Controllers
             return CreatedAtAction(nameof(GetById), new { id = category.Id }, ApiResponse<CategoryResponseDTO>.SuccessResult(category, "Category created successfully"));
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.Admin)]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] CategoryRequestDTO dto)
+        public async Task<IActionResult> Update(int id, [FromBody] CategoryRequestDTO dto)
         {
             if (!ModelState.IsValid) return BadRequest(ApiResponse<object>.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
             var category = await _categoryService.UpdateAsync(id, dto);
             return Ok(ApiResponse<CategoryResponseDTO>.SuccessResult(category, "Category updated successfully"));
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.Admin)]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(int id)
         {
             var result = await _categoryService.DeleteAsync(id);
             if (!result) throw new NotFoundException("Category not found");

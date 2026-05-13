@@ -23,10 +23,6 @@ namespace ShopNN.Controllers
             _paymentService = paymentService;
         }
 
-        /// <summary>
-        /// Create a new order from the current cart.
-        /// Returns a payment URL if VnPay is selected.
-        /// </summary>
         [HttpPost("checkout")]
         public async Task<IActionResult> Checkout([FromBody] OrderCreateRequestDTO request)
         {
@@ -37,10 +33,8 @@ namespace ShopNN.Controllers
             if (userId == null)
                 throw new UnauthorizedException("Session expired.");
 
-            // 1. Create order in DB
             var orderResponse = await _orderService.CreateOrderAsync(userId.Value, request.PaymentMethod);
 
-            // 2. Handle VnPay payment if selected
             if (request.PaymentMethod == PaymentMethod.VnPay)
             {
                 orderResponse.PaymentUrl = await _paymentService.CreatePaymentUrlByOrderId(orderResponse.Id, HttpContext);
@@ -60,7 +54,7 @@ namespace ShopNN.Controllers
             return Ok(ApiResponse<List<OrderResponseDTO>>.SuccessResult(orders, "Orders retrieved successfully."));
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.Admin)]
         [HttpGet("admin/all")]
         public async Task<IActionResult> GetAll()
         {
@@ -68,7 +62,15 @@ namespace ShopNN.Controllers
             return Ok(ApiResponse<List<OrderResponseDTO>>.SuccessResult(result, "All orders retrieved successfully."));
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleNames.Admin)]
+        [HttpGet("admin/search")]
+        public async Task<IActionResult> SearchOrders([FromQuery] OrderQueryDTO query)
+        {
+            var result = await _orderService.GetAllOrdersPagedAsync(query);
+            return Ok(ApiResponse<PagedResult<OrderResponseDTO>>.SuccessResult(result, "Orders retrieved successfully."));
+        }
+
+        [Authorize(Roles = RoleNames.Admin)]
         [HttpPut("admin/{id}/status")]
         public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] OrderStatus status)
         {

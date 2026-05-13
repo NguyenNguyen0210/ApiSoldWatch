@@ -51,11 +51,6 @@ namespace ShopNN.Services.Implement
             if (dto.Quantity <= 0) throw new BadRequestException("Quantity must be greater than 0");
 
             var product = await _productRepository.GetByIdAsync(dto.ProductId);
-                //_context.Products
-                //.AsNoTracking()
-                //.Where(p => p.Id == dto.ProductId)
-                //.Select(p => new { p.Id, p.Stock })
-                //.FirstOrDefaultAsync();
 
             if (product == null)
                 throw new NotFoundException("Product not found");
@@ -111,12 +106,15 @@ namespace ShopNN.Services.Implement
 
         public async Task<CartResponseDTO> UpdateItemQuantityAsync(Guid userId, Guid cartItemId, CartItemUpdateDTO dto)
         {
+            if (dto.Quantity <= 0) throw new BadRequestException("Quantity must be at least 1");
+
             var cart = await _cartRepository.GetCartByUserIdAsync(userId) ?? throw new NotFoundException("Cart Not Found");
             var item = cart.Items.FirstOrDefault(x => x.Id == cartItemId) ?? throw new NotFoundException("Cart item not found");
 
+            var product = item.Product ?? throw new NotFoundException("Product not found");
 
-            if (item.Product.Stock < dto.Quantity)
-                    throw new BadRequestException("Not enough stock");
+            if (product.Stock < dto.Quantity)
+                throw new BadRequestException("Not enough stock");
 
             item.Quantity = dto.Quantity;
             
@@ -142,16 +140,13 @@ namespace ShopNN.Services.Implement
         public async Task ClearCartAsync(Guid userId)
         {
             var cart = await _cartRepository.GetCartByUserIdAsync(userId)
-      ?? throw new NotFoundException("Cart not found");
+                ?? throw new NotFoundException("Cart not found");
 
-            // 2. Kiểm tra cart có item không
             if (!cart.Items.Any())
                 throw new BadRequestException("Cart is already empty");
 
-            // 3. Xóa toàn bộ item
             await _cartRepository.ClearCartAsync(cart.Id);
 
-            // 4. Cập nhật UpdatedAt
             cart.UpdatedAt = DateTime.UtcNow;
             await _cartRepository.SaveChangeAsync();
         }

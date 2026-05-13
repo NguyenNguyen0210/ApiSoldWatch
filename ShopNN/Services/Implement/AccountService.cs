@@ -3,6 +3,7 @@ using ShopNN.DTOs;
 using ShopNN.Entities;
 using ShopNN.Services.Interface;
 using ShopNN.Shared.Exeptions;
+using ShopNN.Shared.Enums;
 
 namespace ShopNN.Services.Implement
 {
@@ -52,11 +53,11 @@ namespace ShopNN.Services.Implement
             if (!result.Succeeded)
                 return result;
 
-            if (!await _roleManager.RoleExistsAsync("User"))
+            if (!await _roleManager.RoleExistsAsync(RoleNames.User))
             {
                 var roleResult = await _roleManager.CreateAsync(new ApplicationRole
                 {
-                    Name = "User"
+                    Name = RoleNames.User
                 });
 
                 if (!roleResult.Succeeded)
@@ -66,7 +67,7 @@ namespace ShopNN.Services.Implement
                     });
             }
 
-            var addRoleResult = await _userManager.AddToRoleAsync(user, "User");
+            var addRoleResult = await _userManager.AddToRoleAsync(user, RoleNames.User);
 
             if (!addRoleResult.Succeeded)
                 return addRoleResult;

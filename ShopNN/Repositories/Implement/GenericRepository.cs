@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ShopNN.Entities;
 using ShopNN.Repositories.Interface;
 using ShopNN.Shared.Exeptions;
@@ -23,7 +23,7 @@ namespace ShopNN.Repositories.Implement
             return data;
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task DeleteAsync(object id)
         {
             T data = await  GetByIdAsync(id) ?? throw new NotFoundException($"Entity with id {id} not found.");
             _db.Remove(data);
@@ -40,7 +40,7 @@ namespace ShopNN.Repositories.Implement
             return await _db.AsNoTracking().ToListAsync();
         }
 
-        public virtual async Task<T?> GetByIdAsync(Guid id)
+        public virtual async Task<T?> GetByIdAsync(object id)
         {
             return await _db.FindAsync(id);
         }

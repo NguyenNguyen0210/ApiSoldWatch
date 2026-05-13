@@ -177,8 +177,8 @@ namespace ShopNN.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
@@ -307,15 +307,15 @@ namespace ShopNN.Migrations
                         {
                             Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "57d23f7f-e27f-44da-8c38-8739eb371255",
+                            ConcurrencyStamp = "eb0eea4a-5312-45ff-af62-5ceb568afdd9",
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAELuLc1saBPJ0ApMkyZYHsp1t3idrv2NhFTHS8CTZdujhxTgBIvoRvpkF6SDNqAvTdA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEGYHx8/9xyW7ZIwMfvTO0jPDLL3KZCCmuOQyZcd5cY/7df0uFtnxPnzwIrj2NCmmEQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "4a7d91f9-bab2-4b69-9112-a2200cfa17dc",
+                            SecurityStamp = "b1b464a1-eb20-4653-a76b-23475271c401",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
@@ -353,8 +353,8 @@ namespace ShopNN.Migrations
                     b.Property<Guid>("CartId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
@@ -370,9 +370,11 @@ namespace ShopNN.Migrations
 
             modelBuilder.Entity("ShopNN.Entities.Category", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -385,22 +387,22 @@ namespace ShopNN.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("c1111111-1111-1111-1111-111111111111"),
+                            Id = 1,
                             Name = "Luxury Watches"
                         },
                         new
                         {
-                            Id = new Guid("c2222222-2222-2222-2222-222222222222"),
+                            Id = 2,
                             Name = "Sport Watches"
                         },
                         new
                         {
-                            Id = new Guid("c3333333-3333-3333-3333-333333333333"),
+                            Id = 3,
                             Name = "Smart Watches"
                         },
                         new
                         {
-                            Id = new Guid("c4444444-4444-4444-4444-444444444444"),
+                            Id = 4,
                             Name = "Classic Watches"
                         });
                 });
@@ -437,20 +439,21 @@ namespace ShopNN.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderId")
-                        .IsUnique();
+                    b.HasIndex("OrderId");
 
                     b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("ShopNN.Entities.Product", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
 
-                    b.Property<Guid?>("CategoryId")
-                        .HasColumnType("uniqueidentifier");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -478,8 +481,8 @@ namespace ShopNN.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("6e87bb51-7691-4b60-8754-92c916d8bde4"),
-                            CategoryId = new Guid("c1111111-1111-1111-1111-111111111111"),
+                            Id = 101,
+                            CategoryId = 1,
                             Description = "18ct yellow gold, President bracelet",
                             ImageUrl = "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=1000&auto=format&fit=crop",
                             Name = "Rolex Day-Date 40",
@@ -488,8 +491,8 @@ namespace ShopNN.Migrations
                         },
                         new
                         {
-                            Id = new Guid("aa5902cb-90a5-4f19-9019-964a443c1bd0"),
-                            CategoryId = new Guid("c1111111-1111-1111-1111-111111111111"),
+                            Id = 102,
+                            CategoryId = 1,
                             Description = "Steel blue dial, luxury sports watch",
                             ImageUrl = "https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=1000&auto=format&fit=crop",
                             Name = "Patek Philippe Nautilus",
@@ -498,8 +501,8 @@ namespace ShopNN.Migrations
                         },
                         new
                         {
-                            Id = new Guid("97622414-7218-4774-9e46-fa9036c440ef"),
-                            CategoryId = new Guid("c1111111-1111-1111-1111-111111111111"),
+                            Id = 103,
+                            CategoryId = 1,
                             Description = "Selfwinding 'Jumbo' Extra-thin",
                             ImageUrl = "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?q=80&w=1000&auto=format&fit=crop",
                             Name = "Audemars Piguet Royal Oak",
@@ -508,8 +511,8 @@ namespace ShopNN.Migrations
                         },
                         new
                         {
-                            Id = new Guid("b9a65dc1-4b9a-41a2-abe9-41c1dfbb3feb"),
-                            CategoryId = new Guid("c2222222-2222-2222-2222-222222222222"),
+                            Id = 104,
+                            CategoryId = 2,
                             Description = "Carbon Core Guard, Triple Sensor",
                             ImageUrl = "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?q=80&w=1000&auto=format&fit=crop",
                             Name = "Casio G-Shock Mudmaster",
@@ -518,8 +521,8 @@ namespace ShopNN.Migrations
                         },
                         new
                         {
-                            Id = new Guid("2686df78-8723-42df-97f6-1e8444a6b096"),
-                            CategoryId = new Guid("c2222222-2222-2222-2222-222222222222"),
+                            Id = 105,
+                            CategoryId = 2,
                             Description = "Automatic diver's watch 200m",
                             ImageUrl = "https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?q=80&w=1000&auto=format&fit=crop",
                             Name = "Seiko Prospex 'Turtle'",
@@ -528,8 +531,8 @@ namespace ShopNN.Migrations
                         },
                         new
                         {
-                            Id = new Guid("3bc26010-c093-4945-a44c-5b6c676052d3"),
-                            CategoryId = new Guid("c2222222-2222-2222-2222-222222222222"),
+                            Id = 106,
+                            CategoryId = 2,
                             Description = "Solar powered multisport GPS watch",
                             ImageUrl = "https://images.unsplash.com/photo-1517502884422-41eaead166d4?q=80&w=1000&auto=format&fit=crop",
                             Name = "Garmin Fenix 7X",
@@ -538,8 +541,8 @@ namespace ShopNN.Migrations
                         },
                         new
                         {
-                            Id = new Guid("c609f335-79f0-4e92-93cc-421cfeda81e2"),
-                            CategoryId = new Guid("c3333333-3333-3333-3333-333333333333"),
+                            Id = 107,
+                            CategoryId = 3,
                             Description = "Rugged and capable, with GPS + Cellular",
                             ImageUrl = "https://images.unsplash.com/photo-1434493907317-a46b5bc78344?q=80&w=1000&auto=format&fit=crop",
                             Name = "Apple Watch Ultra 2",
@@ -548,8 +551,8 @@ namespace ShopNN.Migrations
                         },
                         new
                         {
-                            Id = new Guid("945ac84b-41ce-480a-a325-477dd012ac09"),
-                            CategoryId = new Guid("c3333333-3333-3333-3333-333333333333"),
+                            Id = 108,
+                            CategoryId = 3,
                             Description = "Advanced sleep tracking and wellness",
                             ImageUrl = "https://images.unsplash.com/photo-1508685096489-77a46807e624?q=80&w=1000&auto=format&fit=crop",
                             Name = "Samsung Galaxy Watch 6",
@@ -558,8 +561,8 @@ namespace ShopNN.Migrations
                         },
                         new
                         {
-                            Id = new Guid("7c8e8842-2b22-406a-8264-6ddad1607e2d"),
-                            CategoryId = new Guid("c4444444-4444-4444-4444-444444444444"),
+                            Id = 109,
+                            CategoryId = 4,
                             Description = "Elegant moonphase automatic watch",
                             ImageUrl = "https://images.unsplash.com/photo-1524592094714-0f0654e20314?q=80&w=1000&auto=format&fit=crop",
                             Name = "Longines Master Collection",
@@ -568,8 +571,8 @@ namespace ShopNN.Migrations
                         },
                         new
                         {
-                            Id = new Guid("3754ba52-9ef9-40ad-aeab-9aab66b08e75"),
-                            CategoryId = new Guid("c4444444-4444-4444-4444-444444444444"),
+                            Id = 110,
+                            CategoryId = 4,
                             Description = "Traditional swiss automatic watch",
                             ImageUrl = "https://images.unsplash.com/photo-1533139502658-0198f920d8e8?q=80&w=1000&auto=format&fit=crop",
                             Name = "Tissot Le Locle",
@@ -578,8 +581,8 @@ namespace ShopNN.Migrations
                         },
                         new
                         {
-                            Id = new Guid("591d51e0-4ccd-4ed9-a23b-50436fa0a6ee"),
-                            CategoryId = new Guid("c4444444-4444-4444-4444-444444444444"),
+                            Id = 111,
+                            CategoryId = 4,
                             Description = "Open heart dial, stainless steel",
                             ImageUrl = "https://images.unsplash.com/photo-1509048191080-d2984bad6ad5?q=80&w=1000&auto=format&fit=crop",
                             Name = "Hamilton Jazzmaster",
@@ -737,8 +740,8 @@ namespace ShopNN.Migrations
             modelBuilder.Entity("ShopNN.Entities.Payment", b =>
                 {
                     b.HasOne("Order", "Order")
-                        .WithOne()
-                        .HasForeignKey("ShopNN.Entities.Payment", "OrderId")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -749,8 +752,7 @@ namespace ShopNN.Migrations
                 {
                     b.HasOne("ShopNN.Entities.Category", "Category")
                         .WithMany("Products")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("CategoryId");
 
                     b.Navigation("Category");
                 });

@@ -1,12 +1,11 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 using ShopNN.DTOs;
 using ShopNN.Entities;
-using ShopNN.Repositories.Implement;
 using ShopNN.Repositories.Interface;
 using ShopNN.Services.Interface;
 using ShopNN.Shared.Enums;
 using ShopNN.Shared.Exeptions;
+using ShopNN.Shared.Wrappers;
 
 namespace ShopNN.Services.Implement
 {
@@ -99,6 +98,19 @@ namespace ShopNN.Services.Implement
         {
             var orders = await _orderRepository.GetAllAsync();
             return _mapper.Map<List<OrderResponseDTO>>(orders);
+        }
+
+        public async Task<PagedResult<OrderResponseDTO>> GetAllOrdersPagedAsync(OrderQueryDTO query)
+        {
+            var pagedOrders = await _orderRepository.GetPagedAsync(query);
+
+            return new PagedResult<OrderResponseDTO>
+            {
+                Items = _mapper.Map<List<OrderResponseDTO>>(pagedOrders.Items),
+                Page = pagedOrders.Page,
+                PageSize = pagedOrders.PageSize,
+                TotalCount = pagedOrders.TotalCount
+            };
         }
 
         public async Task<OrderResponseDTO> UpdateStatusAsync(Guid orderId, OrderStatus status)

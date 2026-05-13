@@ -1,22 +1,21 @@
-using ShopNN.Entities;
-using ShopNN.Entities;
 using ShopNN.Shared.Enums;
 
-
-
-public class Order
+namespace ShopNN.Entities
 {
-    public Guid Id { get; set; }
+    public class Order
+    {
+        public Guid Id { get; set; }
 
-    public Guid UserId { get; set; }
-    public ApplicationUser? User { get; set; }
+        public Guid UserId { get; set; }
+        public ApplicationUser? User { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-    public decimal TotalAmount { get; set; }
-    public OrderStatus Status { get; set; } = OrderStatus.Pending;
+        public DateTime CreatedAt { get; set; }
+        public decimal TotalAmount { get; set; }
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
-    public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.COD;
-    public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Unpaid;
+        public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.COD;
+        public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Unpaid;
 
-    public List<OrderItem> Items { get; set; } = new();
+        public List<OrderItem> Items { get; set; } = new();
+    }
 }
