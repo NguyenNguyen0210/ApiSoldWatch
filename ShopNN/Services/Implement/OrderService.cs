@@ -4,7 +4,7 @@ using ShopNN.Entities;
 using ShopNN.Repositories.Interface;
 using ShopNN.Services.Interface;
 using ShopNN.Shared.Enums;
-using ShopNN.Shared.Exeptions;
+using ShopNN.Shared.Exceptions;
 using ShopNN.Shared.Wrappers;
 
 namespace ShopNN.Services.Implement

@@ -7,7 +7,7 @@ using ShopNN.Services.Implement;
 using ShopNN.Services.Interface;
 using System.Text;
 using Serilog;
-using ShopNN.Middleware;
+using ShopNN.Middlewares;
 using ShopNN.Repositories.Interface;
 using ShopNN.Repositories.Implement;
 

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ShopNN.Entities;
 using ShopNN.Repositories.Interface;
-using ShopNN.Shared.Exeptions;
+using ShopNN.Shared.Exceptions;
 using System.Linq.Expressions;
 
 namespace ShopNN.Repositories.Implement

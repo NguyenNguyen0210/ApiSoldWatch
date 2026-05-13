@@ -9,7 +9,7 @@ using ShopNN.Entities;
 using ShopNN.Services.Implement;
 using ShopNN.Shared.Enums;
 using ShopNN.Services.Interface;
-using ShopNN.Shared.Exeptions;
+using ShopNN.Shared.Exceptions;
 
 namespace ShopNN.Tests.Services;
 

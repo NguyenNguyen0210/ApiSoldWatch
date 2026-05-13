@@ -6,7 +6,7 @@ using ShopNN.Entities;
 using ShopNN.Mappings;
 using ShopNN.Repositories.Interface;
 using ShopNN.Services.Implement;
-using ShopNN.Shared.Exeptions;
+using ShopNN.Shared.Exceptions;
 using ShopNN.Shared.Wrappers;
 
 namespace ShopNN.Tests.Services

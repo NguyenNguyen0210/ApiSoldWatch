@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ShopNN.DTOs;
 using ShopNN.Services.Interface;
 using System.Security.Claims;
-using ShopNN.Shared.Exeptions;
+using ShopNN.Shared.Exceptions;
 using ShopNN.Shared.Wrappers;
 using ShopNN.Shared.Enums;
 

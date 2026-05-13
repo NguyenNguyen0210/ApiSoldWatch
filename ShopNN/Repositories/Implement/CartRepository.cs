@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ShopNN.DTOs;
 using ShopNN.Entities;
 using ShopNN.Repositories.Interface;
-using ShopNN.Shared.Exeptions;
+using ShopNN.Shared.Exceptions;
 
 namespace ShopNN.Repositories.Implement
 {

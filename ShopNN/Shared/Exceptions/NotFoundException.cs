@@ -1,4 +1,4 @@
-﻿namespace ShopNN.Shared.Exeptions
+namespace ShopNN.Shared.Exceptions
 {
     public class NotFoundException : AppException
     {

@@ -1,7 +1,7 @@
-using ShopNN.Shared.Exeptions;
+using ShopNN.Shared.Exceptions;
 using ShopNN.Shared.Wrappers;
 
-namespace ShopNN.Middleware
+namespace ShopNN.Middlewares
 {
     public class ExceptionMiddleware
     {
