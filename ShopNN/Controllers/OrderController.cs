@@ -78,6 +78,14 @@ namespace ShopNN.Controllers
             return Ok(ApiResponse<OrderResponseDTO>.SuccessResult(result, "Order status updated successfully."));
         }
 
+        [Authorize(Roles = RoleNames.Admin)]
+        [HttpPut("admin/{id}/payment-status")]
+        public async Task<IActionResult> UpdatePaymentStatus(Guid id, [FromBody] PaymentStatus paymentStatus)
+        {
+            var result = await _orderService.UpdatePaymentStatusAsync(id, paymentStatus);
+            return Ok(ApiResponse<OrderResponseDTO>.SuccessResult(result, "Order payment status updated successfully."));
+        }
+
         private Guid? GetUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

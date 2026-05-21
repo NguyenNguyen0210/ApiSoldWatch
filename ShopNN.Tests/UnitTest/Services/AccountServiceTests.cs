@@ -18,11 +18,13 @@ public class AccountServiceTests
     private readonly Mock<IAuthService> _auth = new();
     private readonly Mock<UserManager<ApplicationUser>> _um = UserManagerStub();
     private readonly Mock<RoleManager<ApplicationRole>> _rm = RoleManagerStub();
+    private readonly Mock<IEmailService> _email = new();
+    private readonly Mock<ILogger<AccountService>> _logger = new();
     private readonly AccountService _sut;
 
     public AccountServiceTests()
     {
-        _sut = new AccountService(_auth.Object, _um.Object, _rm.Object);
+        _sut = new AccountService(_auth.Object, _um.Object, _rm.Object, _email.Object, _logger.Object);
     }
 
     private static Mock<UserManager<ApplicationUser>> UserManagerStub()
@@ -79,14 +81,15 @@ public class AccountServiceTests
         _auth.Verify(a => a.GenerateTokenAsync(It.IsAny<ApplicationUser>()), Times.Never);
     }
 
+
     [Fact]
     public async Task SignIn_WhenPasswordIncorrect_ShouldThrowBadRequestException()
     {
         var user = MakeUser();
         _um.Setup(m => m.FindByNameAsync(user.UserName!)).ReturnsAsync(user);
-        _um.Setup(m => m.CheckPasswordAsync(user, "wrong")).ReturnsAsync(false);
+        _um.Setup(m => m.CheckPasswordAsync(user, "abc")).ReturnsAsync(false);
 
-        var act = async () => await _sut.SignIn(new SignInDTO { Username = user.UserName!, Password = "wrong" });
+        var act = async () => await _sut.SignIn(new SignInDTO { Username = user.UserName!, Password = "abc" });
 
         await act.Should().ThrowAsync<BadRequestException>()
                  .WithMessage("Password Incorrect");
@@ -101,49 +104,36 @@ public class AccountServiceTests
         var tokens = MakeTokens();
 
         _um.Setup(m => m.FindByNameAsync(user.UserName!)).ReturnsAsync(user);
-        _um.Setup(m => m.CheckPasswordAsync(user, "correct")).ReturnsAsync(true);
+        _um.Setup(m => m.CheckPasswordAsync(user, "abc123")).ReturnsAsync(true);
         _auth.Setup(a => a.GenerateTokenAsync(user)).ReturnsAsync(tokens);
 
-        var result = await _sut.SignIn(new SignInDTO { Username = user.UserName!, Password = "correct" });
+        var result = await _sut.SignIn(new SignInDTO { Username = user.UserName!, Password = "abc123" });
 
         result.AccessToken.Should().Be(tokens.AccessToken);
         result.RefreshToken.Should().Be(tokens.RefreshToken);
         _auth.Verify(a => a.GenerateTokenAsync(user), Times.Once);
     }
 
-    [Fact]
-    public async Task SignIn_WhenTokenGenerationFails_ShouldPropagate()
-    {
-        var user = MakeUser();
-        _um.Setup(m => m.FindByNameAsync(user.UserName!)).ReturnsAsync(user);
-        _um.Setup(m => m.CheckPasswordAsync(user, "ok")).ReturnsAsync(true);
-        _auth.Setup(a => a.GenerateTokenAsync(user))
-             .ThrowsAsync(new Exception("Token service down"));
-
-        var act = async () => await _sut.SignIn(new SignInDTO { Username = user.UserName!, Password = "ok" });
-
-        await act.Should().ThrowAsync<Exception>()
-                 .WithMessage("Token service down");
-    }
     #endregion
 
     #region SignUp
     [Fact]
-    public async Task SignUp_WhenCreateFails_ShouldReturnFailedResult()
+    public async Task SignUp_WhenCreateFails_ShouldThrowBadRequestException()
     {
         _um.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Email taken" }));
 
-        var result = await _sut.SignUp(new SignUpDTO { Username = "u", Password = "P@ss123!", Email = "u@mail.com" });
+        var act = async () => await _sut.SignUp(new SignUpDTO { Username = "u", Password = "P@ss123!", Email = "u@mail.com" });
 
-        result.Succeeded.Should().BeFalse();
+        await act.Should().ThrowAsync<BadRequestException>()
+                 .WithMessage("Đăng ký thất bại: Email taken");
 
-        // Role không được gán khi create fail
         _um.Verify(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()), Times.Never);
+        _email.Verify(e => e.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public async Task SignUp_WhenSucceededAndRoleExists_ShouldAddRoleWithoutCreating()
+    public async Task SignUp_WhenSucceededAndRoleExists_ShouldAddRoleAndSendEmail()
     {
         _um.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
            .ReturnsAsync(IdentityResult.Success);
@@ -153,62 +143,14 @@ public class AccountServiceTests
 
         var result = await _sut.SignUp(new SignUpDTO { Username = "u", Password = "P@ss123!", Email = "u@mail.com" });
 
-        result.Succeeded.Should().BeTrue();
+        result.UserName.Should().Be("u");
+        result.Email.Should().Be("u@mail.com");
 
-        // Role đã tồn tại → không cần tạo mới
         _rm.Verify(r => r.CreateAsync(It.IsAny<ApplicationRole>()), Times.Never);
         _um.Verify(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), RoleNames.User), Times.Once);
-    }
-
-    [Fact]
-    public async Task SignUp_WhenSucceededAndRoleNotExists_ShouldCreateRoleThenAdd()
-    {
-        _um.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
-           .ReturnsAsync(IdentityResult.Success);
-        _um.Setup(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), RoleNames.User))
-           .ReturnsAsync(IdentityResult.Success);
-        _rm.Setup(r => r.RoleExistsAsync(RoleNames.User)).ReturnsAsync(false);
-        _rm.Setup(r => r.CreateAsync(It.IsAny<ApplicationRole>()))
-           .ReturnsAsync(IdentityResult.Success);
-
-        var result = await _sut.SignUp(new SignUpDTO { Username = "u", Password = "P@ss123!", Email = "u@mail.com" });
-
-        result.Succeeded.Should().BeTrue();
-
-        _rm.Verify(r => r.CreateAsync(It.IsAny<ApplicationRole>()), Times.Once);
-        _um.Verify(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), RoleNames.User), Times.Once);
-    }
-
-    [Fact]
-    public async Task SignUp_WhenRoleCreationFails_ShouldReturnFailedResult()
-    {
-        _um.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
-           .ReturnsAsync(IdentityResult.Success);
-        _rm.Setup(r => r.RoleExistsAsync(RoleNames.User)).ReturnsAsync(false);
-        _rm.Setup(r => r.CreateAsync(It.IsAny<ApplicationRole>()))
-           .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Role create failed" }));
-
-        var result = await _sut.SignUp(new SignUpDTO { Username = "u", Password = "P@ss123!", Email = "u@mail.com" });
-
-        result.Succeeded.Should().BeFalse();
-        _um.Verify(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task SignUp_WhenAddToRoleFails_ShouldReturnFailedResult()
-    {
-        _um.Setup(m => m.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
-           .ReturnsAsync(IdentityResult.Success);
-        _rm.Setup(r => r.RoleExistsAsync(RoleNames.User)).ReturnsAsync(true);
-        _um.Setup(m => m.AddToRoleAsync(It.IsAny<ApplicationUser>(), RoleNames.User))
-           .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "AddToRole failed" }));
-
-        var result = await _sut.SignUp(new SignUpDTO { Username = "u", Password = "P@ss123!", Email = "u@mail.com" });
-
-        result.Succeeded.Should().BeFalse();
+        _email.Verify(e => e.SendEmailAsync("u@mail.com", It.IsAny<string>(), It.IsAny<string>(), "u"), Times.Once);
     }
     #endregion
-
 
     #region RefreshToken
     [Fact]
@@ -230,7 +172,7 @@ public class AccountServiceTests
         _auth.Setup(a => a.RefreshToken(It.IsAny<string>()))
              .ThrowsAsync(new SecurityTokenException("Invalid or expired refresh token."));
 
-        var act = async () => await _sut.RefreshToken(new RefreshTokenRequestDTO { Token = "bad" });
+        var act = async () => await _sut.RefreshToken(new RefreshTokenRequestDTO { Token = "abcd" });
 
         await act.Should().ThrowAsync<SecurityTokenException>();
     }

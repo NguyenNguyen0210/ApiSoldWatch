@@ -3,27 +3,47 @@ using ShopNN.DTOs;
 using ShopNN.Entities;
 using ShopNN.Repositories.Interface;
 using ShopNN.Shared.Wrappers;
+using ShopNN.Shared.Exceptions;
 
 namespace ShopNN.Repositories.Implement
 {
-    public class ProductRepository : GenericRepository<Product>, IProductRepository
+    public class ProductRepository : IProductRepository
     {
         private readonly ApplicationDbContext _context;
-        public ProductRepository(ApplicationDbContext context) : base(context)
+        public ProductRepository(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public async override Task<IEnumerable<Product>> GetAllAsync()
+        public async Task<IEnumerable<Product>> GetAllAsync()
         {
             return await _context.Products.AsNoTracking().Include(p => p.Category).ToListAsync();
         }
 
-        public async override Task<Product?> GetByIdAsync(object id)
+        public async Task<Product?> GetByIdAsync(int id)
         {
-            int intId = id is int i ? i : int.Parse(id.ToString()!);
-            return await _context.Products.AsNoTracking().Include(p => p.Category)
-                .FirstOrDefaultAsync(p => p.Id == intId);
+            return await _context.Products.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+        public async Task<Product> AddAsync(Product data)
+        {
+            _context.Products.Add(data);
+            await _context.SaveChangesAsync();
+            return data;
+        }
+
+        public async Task UpdateAsync(Product data)
+        {
+            _context.Products.Update(data);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            var data = await GetByIdAsync(id) ?? throw new NotFoundException($"Product with id {id} not found.");
+            _context.Products.Remove(data);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<PagedResult<Product>> GetPagedAsync(ProductQueryDTO query)
@@ -33,7 +53,6 @@ namespace ShopNN.Repositories.Implement
                 .Include(p => p.Category)
                 .AsQueryable();
 
-            // Search
             if (!string.IsNullOrWhiteSpace(query.Search))
             {
                 var search = query.Search.Trim().ToLower();

@@ -1,0 +1,13 @@
+# Ignore dependencies and build outputs
+node_modules/
+dist/
+build/
+.svelte-kit/
+.vscode/
+.idea/
+.DS_Store
+*.md
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

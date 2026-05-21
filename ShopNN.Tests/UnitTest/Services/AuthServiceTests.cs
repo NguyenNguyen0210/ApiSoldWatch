@@ -14,7 +14,6 @@ namespace ShopNN.Tests.Services;
 
 public class AuthServiceTests
 {
-    // ── Class-level setup ────────────────────────────────
     private readonly Mock<IRefreshTokenRepository> _repo = new();
     private readonly Mock<UserManager<ApplicationUser>> _um = UserManagerStub();
     private readonly IConfiguration _config = Mock.Of<IConfiguration>(
@@ -23,7 +22,7 @@ public class AuthServiceTests
 
     public AuthServiceTests()
     {
-        _sut = new AuthService(_um.Object, _repo.Object, _config);
+        _sut = new AuthService(_um.Object, _repo.Object, _config, new Mock<ILogger<AuthService>>().Object);
     }
 
     private static Mock<UserManager<ApplicationUser>> UserManagerStub()
@@ -73,7 +72,7 @@ public class AuthServiceTests
     public async Task GenerateAccessTokenAsync_WhenJwtKeyMissing_ShouldThrow()
     {
         var config = Mock.Of<IConfiguration>(c => c["Jwt:Key"] == null);
-        var sut    = new AuthService(_um.Object, _repo.Object, config);
+        var sut    = new AuthService(_um.Object, _repo.Object, config, new Mock<ILogger<AuthService>>().Object);
         var user   = MakeUser();
 
         _um.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(Array.Empty<string>());
@@ -208,7 +207,7 @@ public class AuthServiceTests
 
         _repo.Setup(r => r.GetActiveByTokenAsync("old-token")).ReturnsAsync(refreshToken);
         _repo.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
-        _repo.Setup(r => r.AddAsync(It.IsAny<RefreshToken>())).ReturnsAsync((ShopNN.Entities.RefreshToken r) => r);
+        _repo.Setup(r => r.AddAsync(It.IsAny<RefreshToken>())).ReturnsAsync((RefreshToken r) => r);
         _um.Setup(m => m.GetRolesAsync(It.IsAny<ApplicationUser>()))
            .ReturnsAsync(Array.Empty<string>());
 

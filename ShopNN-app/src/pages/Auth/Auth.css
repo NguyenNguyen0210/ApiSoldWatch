@@ -1,0 +1,59 @@
+/* ===== Auth Pages (Login & Register) ===== */
+.auth-page {
+  min-height: 100vh;
+  min-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    rgba(201, 168, 76, 0.06) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.auth-card {
+  width: 420px;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  padding: 8px !important;
+  position: relative;
+  z-index: 1;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-header .ant-typography {
+  margin-bottom: 4px !important;
+}
+
+.auth-submit-btn {
+  height: 46px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+.auth-footer {
+  text-align: center;
+}
+
+.auth-footer a {
+  font-weight: 600;
+}
+
+.auth-icon-prefix {
+  color: #bfbfbf;
+}

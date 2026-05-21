@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using Moq;
 using ShopNN.DTOs;
 using ShopNN.Entities;
@@ -23,9 +24,11 @@ public class OrderServiceTests
 
     public OrderServiceTests()
     {
+        int[] a = [1,2, 3];
+        
         var config = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>());
         _mapper = config.CreateMapper();
-        _sut = new OrderService(_orderRepo.Object, _cartRepo.Object, _productRepo.Object, _mapper);
+        _sut = new OrderService(_orderRepo.Object, _cartRepo.Object, _productRepo.Object, _mapper, new Mock<ILogger<OrderService>>().Object);
     }
 
     private static Product MakeProduct(int? id = null, int stock = 10, decimal price = 99) => new()

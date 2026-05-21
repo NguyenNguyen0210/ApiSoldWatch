@@ -1,0 +1,272 @@
+[
+  {
+    "Id": 101,
+    "Name": "Rolex Submariner Date 126610LN",
+    "Description": "Đồng hồ lặn huyền thoại với vỏ Oystersteel 41mm, mặt số đen Cerachrom, chống nước 300m. Bộ máy Calibre 3235 tự động, dự trữ năng lượng 70 giờ. Dây đeo Oyster với khóa Oysterlock an toàn và hệ thống điều chỉnh Glidelock.",
+    "Price": 245000000,
+    "Stock": 3,
+    "CategoryId": 1,
+    "ImageUrl": "https://images.unsplash.com/photo-1622434641406-a158123450f9?w=800"
+  },
+  {
+    "Id": 102,
+    "Name": "Rolex Daytona 126500LN",
+    "Description": "Biểu tượng của tốc độ và đẳng cấp. Vỏ Oystersteel 40mm, bezel Cerachrom đen, mặt số Panda trắng. Bộ máy Calibre 4131 chronograph, dự trữ năng lượng 72 giờ. Chống nước 100m.",
+    "Price": 385000000,
+    "Stock": 1,
+    "CategoryId": 1,
+    "ImageUrl": "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=800"
+  },
+  {
+    "Id": 103,
+    "Name": "Patek Philippe Nautilus 5711/1A-010",
+    "Description": "Chiếc đồng hồ thể thao sang trọng kinh điển. Vỏ thép không gỉ 40mm, mặt số xanh gradient, dây thép tích hợp. Bộ máy Calibre 26-330 S C tự động, chống nước 120m. Thiết kế bởi Gerald Genta.",
+    "Price": 2850000000,
+    "Stock": 1,
+    "CategoryId": 1,
+    "ImageUrl": "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800"
+  },
+  {
+    "Id": 104,
+    "Name": "Audemars Piguet Royal Oak 15500ST",
+    "Description": "Vỏ thép không gỉ 41mm, mặt số xanh Petite Tapisserie. Bộ máy Calibre 4302 tự động, dự trữ năng lượng 70 giờ. Thiết kế octagon với 8 ốc vít hexagonal đặc trưng. Chống nước 50m.",
+    "Price": 1250000000,
+    "Stock": 2,
+    "CategoryId": 1,
+    "ImageUrl": "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=800"
+  },
+  {
+    "Id": 105,
+    "Name": "Omega Speedmaster Moonwatch Professional",
+    "Description": "Chiếc đồng hồ đầu tiên lên Mặt Trăng. Vỏ thép 42mm, mặt số đen, kính Hesalite. Bộ máy Calibre 3861 METAS lên dây cót thủ công, dự trữ 50 giờ. Chronograph với tachymeter bezel.",
+    "Price": 152000000,
+    "Stock": 5,
+    "CategoryId": 1,
+    "ImageUrl": "https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=800"
+  },
+  {
+    "Id": 106,
+    "Name": "Omega Seamaster Diver 300M",
+    "Description": "Vỏ thép không gỉ 42mm, mặt số ceramic xanh biển. Bộ máy Master Chronometer 8800, chống từ 15,000 gauss. Chống nước 300m, van thoát khí helium. Dây cao su hoặc thép.",
+    "Price": 125000000,
+    "Stock": 7,
+    "CategoryId": 6,
+    "ImageUrl": "https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=800"
+  },
+  {
+    "Id": 107,
+    "Name": "Casio G-Shock Mudmaster GWG-2000",
+    "Description": "Cấu trúc Carbon Core Guard siêu bền. Chống bùn, chống va đập, chống rung. Triple Sensor (la bàn, đo cao, khí áp/nhiệt độ). Năng lượng mặt trời, đồng bộ sóng radio Multiband 6.",
+    "Price": 18500000,
+    "Stock": 25,
+    "CategoryId": 2,
+    "ImageUrl": "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=800"
+  },
+  {
+    "Id": 108,
+    "Name": "Casio G-Shock GA-2100-1A1 'CasiOak'",
+    "Description": "Thiết kế bát giác mỏng nhất dòng G-Shock chỉ 11.8mm. Vỏ nhựa carbon, chống va đập. Hiển thị analog-digital kết hợp. Pin CR2016 thời lượng 3 năm. Chống nước 200m.",
+    "Price": 3200000,
+    "Stock": 50,
+    "CategoryId": 2,
+    "ImageUrl": "https://images.unsplash.com/photo-1508685096489-77a46807e624?w=800"
+  },
+  {
+    "Id": 109,
+    "Name": "Seiko Prospex SPB143 '62MAS Reissue'",
+    "Description": "Tái bản mẫu đồng hồ lặn đầu tiên của Seiko. Vỏ thép 40.5mm, mặt số xanh gradient. Bộ máy 6R35 tự động, dự trữ 70 giờ. Kính sapphire, chống nước 200m. Dây silicone.",
+    "Price": 28500000,
+    "Stock": 12,
+    "CategoryId": 6,
+    "ImageUrl": "https://images.unsplash.com/photo-1509048191080-d2984bad6ad5?w=800"
+  },
+  {
+    "Id": 110,
+    "Name": "Garmin Fenix 7X Pro Solar",
+    "Description": "Đồng hồ thể thao GPS cao cấp nhất của Garmin. Màn hình MIP 1.4 inch, sạc năng lượng mặt trời. Bản đồ TopoActive, đèn LED tích hợp. Pin lên đến 37 ngày (GPS), cảm biến SpO2, nhịp tim quang học.",
+    "Price": 22900000,
+    "Stock": 15,
+    "CategoryId": 2,
+    "ImageUrl": "https://images.unsplash.com/photo-1517502884422-41eaead166d4?w=800"
+  },
+  {
+    "Id": 111,
+    "Name": "Apple Watch Ultra 2",
+    "Description": "Vỏ titanium 49mm, màn hình OLED 2000 nits. Chip S9, Double Tap, GPS L1+L5 chính xác cao. Chống nước 100m, đạt chuẩn EN13319 cho lặn. Pin 36 giờ sử dụng bình thường, 72 giờ tiết kiệm pin.",
+    "Price": 21990000,
+    "Stock": 30,
+    "CategoryId": 3,
+    "ImageUrl": "https://images.unsplash.com/photo-1434493907317-a46b5bc78344?w=800"
+  },
+  {
+    "Id": 112,
+    "Name": "Samsung Galaxy Watch 6 Classic 47mm",
+    "Description": "Vòng bezel xoay cổ điển, màn hình Super AMOLED 1.5 inch. Chip Exynos W930, Wear OS, theo dõi giấc ngủ nâng cao. Cảm biến BioActive, đo nhiệt độ da, ECG, huyết áp. Pin 425mAh.",
+    "Price": 9490000,
+    "Stock": 35,
+    "CategoryId": 3,
+    "ImageUrl": "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800"
+  },
+  {
+    "Id": 113,
+    "Name": "Garmin Venu 3",
+    "Description": "Màn hình AMOLED 1.4 inch sáng rõ. Theo dõi sức khỏe toàn diện: Body Battery, Sleep Coach, HRV, Nap Detection. Hơn 30 ứng dụng thể thao tích hợp. Pin lên đến 14 ngày. Hỗ trợ nghe gọi Bluetooth.",
+    "Price": 11990000,
+    "Stock": 20,
+    "CategoryId": 3,
+    "ImageUrl": "https://images.unsplash.com/photo-1544117519-31731f4fcdde?w=800"
+  },
+  {
+    "Id": 114,
+    "Name": "Tissot PRX Powermatic 80",
+    "Description": "Thiết kế retro-chic lấy cảm hứng từ thập niên 70. Vỏ thép 40mm, mặt số xanh lá waffle. Bộ máy Powermatic 80 tự động, dự trữ 80 giờ. Kính sapphire chống xước. Chống nước 100m.",
+    "Price": 16200000,
+    "Stock": 18,
+    "CategoryId": 4,
+    "ImageUrl": "https://images.unsplash.com/photo-1533139502658-0198f920d8e8?w=800"
+  },
+  {
+    "Id": 115,
+    "Name": "Hamilton Khaki Field Mechanical",
+    "Description": "Đồng hồ quân đội kinh điển. Vỏ thép 38mm, mặt số đen matte. Bộ máy H-50 lên dây cót thủ công, dự trữ 80 giờ. Dây vải NATO olive. Kính sapphire, chống nước 50m.",
+    "Price": 12500000,
+    "Stock": 14,
+    "CategoryId": 4,
+    "ImageUrl": "https://images.unsplash.com/photo-1548171915-e79a380a2a4b?w=800"
+  },
+  {
+    "Id": 116,
+    "Name": "Longines Master Collection Moonphase",
+    "Description": "Vỏ thép 40mm, mặt số trắng kem với chỉ báo trăng tròn lúc 6h. Bộ máy L899 tự động (base ETA), dự trữ 72 giờ. Kim xanh thép, index La Mã. Dây da cá sấu đen.",
+    "Price": 58000000,
+    "Stock": 6,
+    "CategoryId": 4,
+    "ImageUrl": "https://images.unsplash.com/photo-1542496658-e33a6d0d50f6?w=800"
+  },
+  {
+    "Id": 117,
+    "Name": "Daniel Wellington Petite Sheffield 32mm",
+    "Description": "Thiết kế minimalist thanh lịch cho phái nữ. Vỏ thép mạ vàng hồng 32mm, mặt số trắng tinh khiết. Bộ máy Miyota quartz Nhật Bản. Dây da đen Italian. Chống nước 30m.",
+    "Price": 4590000,
+    "Stock": 40,
+    "CategoryId": 5,
+    "ImageUrl": "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=800"
+  },
+  {
+    "Id": 118,
+    "Name": "Fossil Gen 6 Hybrid Wellness Edition",
+    "Description": "Kết hợp kim analog truyền thống và màn hình E-Ink. Theo dõi nhịp tim, SpO2, giấc ngủ. Pin 2 tuần. Kết nối Bluetooth, thông báo điện thoại. Vỏ thép 44mm, chống nước 50m.",
+    "Price": 5990000,
+    "Stock": 22,
+    "CategoryId": 5,
+    "ImageUrl": "https://images.unsplash.com/photo-1434056886845-dbe89f0b9571?w=800"
+  },
+  {
+    "Id": 119,
+    "Name": "IWC Pilot's Watch Mark XX",
+    "Description": "Vỏ thép 40mm, mặt số đen matte với triangle index lúc 12h. Bộ máy 32111 tự động (base Sellita), dự trữ 120 giờ. Kính sapphire chống phản chiếu, hệ thống bảo vệ từ trường.",
+    "Price": 115000000,
+    "Stock": 4,
+    "CategoryId": 7,
+    "ImageUrl": "https://images.unsplash.com/photo-1587925358603-c2eea5305bbc?w=800"
+  },
+  {
+    "Id": 120,
+    "Name": "Breitling Navitimer B01 Chronograph 43",
+    "Description": "Biểu tượng hàng không với slide rule bezel. Vỏ thép 43mm, bộ máy in-house B01 chronograph, dự trữ 70 giờ. Mặt số đen với 3 subdial. Chống nước 30m. COSC Chronometer certified.",
+    "Price": 198000000,
+    "Stock": 3,
+    "CategoryId": 7,
+    "ImageUrl": "https://images.unsplash.com/photo-1509941943102-10c232535736?w=800"
+  },
+  {
+    "Id": 121,
+    "Name": "Tudor Black Bay 58",
+    "Description": "Vỏ thép 39mm kích thước vintage hoàn hảo. Mặt số đen gilt, bezel đen nhôm. Bộ máy MT5402 COSC tự động, dự trữ 70 giờ. Chống nước 200m. Dây thép riveted style.",
+    "Price": 89000000,
+    "Stock": 8,
+    "CategoryId": 6,
+    "ImageUrl": "https://images.unsplash.com/photo-1548169874-53e85f753f1e?w=800"
+  },
+  {
+    "Id": 122,
+    "Name": "Citizen Promaster Eco-Drive BN0151-09L",
+    "Description": "Đồng hồ lặn năng lượng ánh sáng, không cần thay pin. Vỏ thép 44mm, mặt số xanh biển. Chống nước 200m ISO 6425. Dạ quang Lumi-Brite mạnh mẽ. Dây polyurethane bền bỉ.",
+    "Price": 7200000,
+    "Stock": 28,
+    "CategoryId": 6,
+    "ImageUrl": "https://images.unsplash.com/photo-1506193095-80a5798431c7?w=800"
+  },
+  {
+    "Id": 123,
+    "Name": "Orient Bambino Version 2 FAC00005W0",
+    "Description": "Dress watch giá tốt nhất phân khúc. Vỏ thép 40.5mm, mặt số kem vintage, kim blued hands. Bộ máy F6722 tự động, dự trữ 40 giờ. Kính mineral dome. Dây da nâu.",
+    "Price": 4800000,
+    "Stock": 20,
+    "CategoryId": 4,
+    "ImageUrl": "https://images.unsplash.com/photo-1455397792935-60e8e4d4c0a5?w=800"
+  },
+  {
+    "Id": 124,
+    "Name": "Xiaomi Watch S3",
+    "Description": "Màn hình AMOLED 1.43 inch, vỏ bezel có thể thay thế. HyperOS, hỗ trợ eSIM, GPS độc lập. Theo dõi 150+ bài tập, SpO2 24/7. Pin 486mAh, sử dụng 15 ngày. Chống nước 5ATM.",
+    "Price": 3290000,
+    "Stock": 45,
+    "CategoryId": 3,
+    "ImageUrl": "https://images.unsplash.com/photo-1461141346587-763ab02bced9?w=800"
+  },
+  {
+    "Id": 125,
+    "Name": "Seiko 5 Sports SRPD55K1",
+    "Description": "Dòng đồng hồ tự động huyền thoại của Seiko. Vỏ thép 42.5mm, mặt số đen sunburst. Bộ máy 4R36 tự động, dự trữ 41 giờ, hacking & hand-winding. Chống nước 100m. Day-Date hiển thị.",
+    "Price": 6800000,
+    "Stock": 30,
+    "CategoryId": 2,
+    "ImageUrl": "https://images.unsplash.com/photo-1539874754764-5a96559165b0?w=800"
+  },
+  {
+    "Id": 126,
+    "Name": "TAG Heuer Carrera Chronograph 44mm",
+    "Description": "Biểu tượng đua xe thể thao. Vỏ thép 44mm, mặt số đen với subdials bạc. Bộ máy Heuer 02 COSC in-house chronograph, dự trữ 80 giờ. Kính sapphire, caseback transparent.",
+    "Price": 128000000,
+    "Stock": 5,
+    "CategoryId": 2,
+    "ImageUrl": "https://images.unsplash.com/photo-1600721391776-b5cd0e0048f2?w=800"
+  },
+  {
+    "Id": 127,
+    "Name": "Cartier Santos de Cartier Medium",
+    "Description": "Chiếc đồng hồ đeo tay đầu tiên trong lịch sử (1904). Vỏ thép 35.1mm, mặt số bạc guilloché, số La Mã xanh. Bộ máy 1847 MC tự động. Hệ thống QuickSwitch dây da/thép.",
+    "Price": 168000000,
+    "Stock": 4,
+    "CategoryId": 1,
+    "ImageUrl": "https://images.unsplash.com/photo-1526045431048-f857369baa09?w=800"
+  },
+  {
+    "Id": 128,
+    "Name": "Junghans Max Bill Automatic",
+    "Description": "Thiết kế Bauhaus tinh khiết bởi nghệ sĩ Max Bill. Vỏ thép 38mm, mặt số trắng với font số đặc trưng. Bộ máy J800.1 tự động. Kính Plexiglas dome, dây da đen. Chống nước 30m.",
+    "Price": 28500000,
+    "Stock": 10,
+    "CategoryId": 5,
+    "ImageUrl": "https://images.unsplash.com/photo-1533139143976-30918502365b?w=800"
+  },
+  {
+    "Id": 129,
+    "Name": "Bell & Ross BR 03-92 Diver",
+    "Description": "Đồng hồ lặn thiết kế vuông độc đáo lấy cảm hứng từ buồng lái máy bay. Vỏ thép 42mm, mặt số đen matte. Bộ máy BR-CAL.302 tự động. Chống nước 300m, bezel xoay một chiều.",
+    "Price": 98000000,
+    "Stock": 3,
+    "CategoryId": 7,
+    "ImageUrl": "https://images.unsplash.com/photo-1585123334904-845d60e97b29?w=800"
+  },
+  {
+    "Id": 130,
+    "Name": "Casio Edifice ECB-2000DC-1A",
+    "Description": "Chronograph thể thao kết nối Bluetooth. Vỏ thép carbon 48mm, mặt số đen đa lớp. Năng lượng mặt trời Tough Solar. World time 300 thành phố, đồng bộ thời gian qua smartphone.",
+    "Price": 8500000,
+    "Stock": 18,
+    "CategoryId": 2,
+    "ImageUrl": "https://images.unsplash.com/photo-1495856458515-0637185db551?w=800"
+  }
+]

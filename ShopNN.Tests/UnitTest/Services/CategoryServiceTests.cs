@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using ShopNN.DTOs;
 using ShopNN.Entities;
@@ -21,7 +22,7 @@ public class CategoryServiceTests
         _repoMock = new Mock<ICategoryRepository>();
         var config = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>());
         _mapper = config.CreateMapper();
-        _sut = new CategoryService(_repoMock.Object, _mapper);
+        _sut = new CategoryService(_repoMock.Object, _mapper, new Mock<ILogger<CategoryService>>().Object);
     }
 
     private static Category MakeCategory(int? id = null) => new()

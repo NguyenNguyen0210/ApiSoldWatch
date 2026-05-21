@@ -1,16 +1,23 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ShopNN.Entities;
 using ShopNN.Repositories.Interface;
 
 namespace ShopNN.Repositories.Implement
 {
-    public class RefreshTokenRepository:GenericRepository<RefreshToken>,IRefreshTokenRepository
+    public class RefreshTokenRepository:IRefreshTokenRepository
     {
         private readonly ApplicationDbContext _context;
 
-        public RefreshTokenRepository(ApplicationDbContext context):base(context) 
+        public RefreshTokenRepository(ApplicationDbContext context) 
         {
             _context = context;
+        }
+
+        public async Task<RefreshToken> AddAsync(RefreshToken data)
+        {
+            _context.RefreshTokens.Add(data);
+            await _context.SaveChangesAsync();
+            return data;
         }
 
         public async Task<RefreshToken?> GetByTokenAsync(string token) =>

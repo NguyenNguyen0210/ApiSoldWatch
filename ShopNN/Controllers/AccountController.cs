@@ -26,12 +26,8 @@ namespace ShopNN.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<object>.FailureResult("Invalid data", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
 
-            var result = await _accountService.SignUp(dto);
-
-            if (!result.Succeeded)
-                return BadRequest(ApiResponse<object>.FailureResult("Sign up failed", result.Errors.Select(e => e.Description).ToList()));
-
-            return Ok(ApiResponse<object>.SuccessResult("Sign up success"));
+            var profile = await _accountService.SignUp(dto);
+            return Ok(ApiResponse<UserProfileResponseDTO>.SuccessResult(profile, "Sign up success"));
         }
 
         [HttpPost("signin")]

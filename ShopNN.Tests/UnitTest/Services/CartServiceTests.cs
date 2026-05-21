@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using ShopNN.DTOs;
 using ShopNN.Entities;
@@ -21,7 +22,7 @@ public class CartServiceTests
     {
         var config = new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>());
         _mapper = config.CreateMapper();
-        _sut = new CartService(_cartMock.Object, _mapper, _productMock.Object);
+        _sut = new CartService(_cartMock.Object, _mapper, _productMock.Object, new Mock<ILogger<CartService>>().Object);
     }
 
     private static Product MakeProduct(int? id = null, int stock = 10) => new()
@@ -87,9 +88,8 @@ public class CartServiceTests
         var cart = MakeCart(uid);
 
         _productMock.Setup(p => p.GetByIdAsync(product.Id)).ReturnsAsync(product);
-        _cartMock.SetupSequence(c => c.GetCartByUserIdAsync(uid))
-                 .ReturnsAsync(cart)
-                 .ReturnsAsync(cart);
+        _cartMock.Setup(c => c.GetCartForUpdateAsync(uid)).ReturnsAsync(cart);
+        _cartMock.Setup(c => c.GetCartByUserIdAsync(uid)).ReturnsAsync(cart);
 
         var dto = new CartItemRequestDTO { ProductId = product.Id, Quantity = 2 };
 
@@ -110,9 +110,8 @@ public class CartServiceTests
         cart.Items.Add(item);
 
         _productMock.Setup(p => p.GetByIdAsync(product.Id)).ReturnsAsync(product);
-        _cartMock.SetupSequence(c => c.GetCartByUserIdAsync(uid))
-                 .ReturnsAsync(cart)
-                 .ReturnsAsync(cart);
+        _cartMock.Setup(c => c.GetCartForUpdateAsync(uid)).ReturnsAsync(cart);
+        _cartMock.Setup(c => c.GetCartByUserIdAsync(uid)).ReturnsAsync(cart);
 
         var dto = new CartItemRequestDTO { ProductId = product.Id, Quantity = 3 };
 
@@ -127,6 +126,7 @@ public class CartServiceTests
         var uid = Guid.NewGuid();
         var product = MakeProduct(id: 1, stock: 5);
         _productMock.Setup(p => p.GetByIdAsync(product.Id)).ReturnsAsync(product);
+        _cartMock.Setup(c => c.GetCartForUpdateAsync(uid)).ReturnsAsync(MakeCart(uid));
 
         var act = async () => await _sut.AddItemToCartAsync(uid, new CartItemRequestDTO { ProductId = 1, Quantity = 10 });
 
@@ -144,9 +144,9 @@ public class CartServiceTests
         var item = MakeCartItem(cart, product, quantity: 1);
         cart.Items.Add(item);
 
-        _cartMock.SetupSequence(c => c.GetCartByUserIdAsync(uid))
-                 .ReturnsAsync(cart)
-                 .ReturnsAsync(cart);
+        _productMock.Setup(p => p.GetByIdAsync(product.Id)).ReturnsAsync(product);
+        _cartMock.Setup(c => c.GetCartForUpdateAsync(uid)).ReturnsAsync(cart);
+        _cartMock.Setup(c => c.GetCartByUserIdAsync(uid)).ReturnsAsync(cart);
 
         await _sut.UpdateItemQuantityAsync(uid, item.Id, new CartItemUpdateDTO { Quantity = 5 });
 
@@ -164,9 +164,8 @@ public class CartServiceTests
         var item = MakeCartItem(cart, MakeProduct());
         cart.Items.Add(item);
 
-        _cartMock.SetupSequence(c => c.GetCartByUserIdAsync(uid))
-                 .ReturnsAsync(cart)
-                 .ReturnsAsync(cart);
+        _cartMock.Setup(c => c.GetCartForUpdateAsync(uid)).ReturnsAsync(cart);
+        _cartMock.Setup(c => c.GetCartByUserIdAsync(uid)).ReturnsAsync(cart);
 
         await _sut.RemoveItemFromCartAsync(uid, item.Id);
 
@@ -183,7 +182,7 @@ public class CartServiceTests
         var cart = MakeCart(uid);
         cart.Items.Add(MakeCartItem(cart, MakeProduct()));
 
-        _cartMock.Setup(c => c.GetCartByUserIdAsync(uid)).ReturnsAsync(cart);
+        _cartMock.Setup(c => c.GetCartForUpdateAsync(uid)).ReturnsAsync(cart);
 
         await _sut.ClearCartAsync(uid);
 
@@ -197,7 +196,7 @@ public class CartServiceTests
         var uid = Guid.NewGuid();
         var cart = MakeCart(uid);
 
-        _cartMock.Setup(c => c.GetCartByUserIdAsync(uid)).ReturnsAsync(cart);
+        _cartMock.Setup(c => c.GetCartForUpdateAsync(uid)).ReturnsAsync(cart);
 
         var act = async () => await _sut.ClearCartAsync(uid);
 
@@ -237,6 +236,7 @@ public class CartServiceTests
     {
         var uid = Guid.NewGuid();
         _productMock.Setup(p => p.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Product?)null);
+        _cartMock.Setup(c => c.GetCartForUpdateAsync(uid)).ReturnsAsync(MakeCart(uid));
 
         var act = async () => await _sut.AddItemToCartAsync(uid, new CartItemRequestDTO { ProductId = 999, Quantity = 1 });
 
@@ -259,7 +259,7 @@ public class CartServiceTests
     public async Task UpdateItemQuantityAsync_WhenCartNotFound_ShouldThrow()
     {
         var uid = Guid.NewGuid();
-        _cartMock.Setup(c => c.GetCartByUserIdAsync(uid)).ReturnsAsync((Cart?)null);
+        _cartMock.Setup(c => c.GetCartForUpdateAsync(uid)).ReturnsAsync((Cart?)null);
 
         var act = async () => await _sut.UpdateItemQuantityAsync(uid, Guid.NewGuid(), new CartItemUpdateDTO { Quantity = 1 });
 
@@ -271,7 +271,7 @@ public class CartServiceTests
     {
         var uid = Guid.NewGuid();
         var cart = MakeCart(uid);
-        _cartMock.Setup(c => c.GetCartByUserIdAsync(uid)).ReturnsAsync(cart);
+        _cartMock.Setup(c => c.GetCartForUpdateAsync(uid)).ReturnsAsync(cart);
 
         var act = async () => await _sut.UpdateItemQuantityAsync(uid, Guid.NewGuid(), new CartItemUpdateDTO { Quantity = 1 });
 
@@ -287,7 +287,8 @@ public class CartServiceTests
         var item = MakeCartItem(cart, product, quantity: 1);
         cart.Items.Add(item);
 
-        _cartMock.Setup(c => c.GetCartByUserIdAsync(uid)).ReturnsAsync(cart);
+        _productMock.Setup(p => p.GetByIdAsync(product.Id)).ReturnsAsync(product);
+        _cartMock.Setup(c => c.GetCartForUpdateAsync(uid)).ReturnsAsync(cart);
 
         var act = async () => await _sut.UpdateItemQuantityAsync(uid, item.Id, new CartItemUpdateDTO { Quantity = 100 });
 

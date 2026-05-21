@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Moq;
 using ShopNN.Entities;
@@ -16,11 +17,19 @@ public class PaymentServiceTests
 {
     private readonly Mock<IOrderRepository>   _orderRepo   = new();
     private readonly Mock<IPaymentRepository> _paymentRepo = new();
+    private readonly Mock<ICartRepository>    _cartRepo    = new();
+    private readonly Mock<IProductRepository> _productRepo  = new();
     private readonly PaymentService _sut;
 
     public PaymentServiceTests()
     {
-        _sut = new PaymentService(VnPayConfig(), _orderRepo.Object, _paymentRepo.Object);
+        _sut = new PaymentService(
+            VnPayConfig(), 
+            _orderRepo.Object, 
+            _paymentRepo.Object, 
+            _cartRepo.Object, 
+            _productRepo.Object, 
+            new Mock<ILogger<PaymentService>>().Object);
     }
 
     private static IConfiguration VnPayConfig() =>
@@ -165,14 +174,6 @@ public class PaymentServiceTests
         var hashSecret = "HASHSECRETAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         
         // Build valid query
-        var vnpay = new VnPayHelper();
-        vnpay.AddResponseData("vnp_TxnRef", orderId.ToString());
-        vnpay.AddResponseData("vnp_ResponseCode", "00");
-        vnpay.AddResponseData("vnp_TransactionNo", "99999");
-        
-        var rawData = "vnp_ResponseCode=00&vnp_TransactionNo=99999&vnp_TxnRef=" + orderId.ToString();
-        // Note: VnPayHelper orders keys alphabetically. vnp_ResponseCode < vnp_TransactionNo < vnp_TxnRef
-        // Let's just use the helper to get the real hash
         var queryDict = new Dictionary<string, StringValues>
         {
             ["vnp_TxnRef"] = orderId.ToString(),
@@ -180,18 +181,20 @@ public class PaymentServiceTests
             ["vnp_TransactionNo"] = "99999"
         };
         
-        // We need to match the sorting logic of VnPayHelper to calculate hash
-        // Or just let the helper do it (internal method but we can replicate)
         var signData = "vnp_ResponseCode=00&vnp_TransactionNo=99999&vnp_TxnRef=" + orderId.ToString();
         var validHash = ShopNN.Utils.HashUtils.HmacSha512(hashSecret, signData);
         queryDict.Add("vnp_SecureHash", validHash);
         
         var query = new QueryCollection(queryDict);
+        var cart = new Cart { Id = Guid.NewGuid(), UserId = order.UserId };
 
         _orderRepo.Setup(o => o.GetByIdAsync(orderId)).ReturnsAsync(order);
         _paymentRepo.Setup(p => p.GetByOrderIdAsync(orderId)).ReturnsAsync((Payment?)null);
         _paymentRepo.Setup(p => p.AddAsync(It.IsAny<Payment>())).ReturnsAsync((Payment p) => p);
         _paymentRepo.Setup(p => p.SaveChangesAsync()).Returns(Task.CompletedTask);
+        _cartRepo.Setup(c => c.GetCartByUserIdAsync(order.UserId)).ReturnsAsync(cart);
+        _cartRepo.Setup(c => c.ClearCartAsync(cart.Id)).Returns(Task.CompletedTask);
+        _cartRepo.Setup(c => c.SaveChangeAsync()).Returns(Task.CompletedTask);
 
         // Act
         var result = await _sut.ProcessVnPayReturn(query);
@@ -202,7 +205,10 @@ public class PaymentServiceTests
         order.Status.Should().Be(OrderStatus.Processing);
         _paymentRepo.Verify(p => p.AddAsync(It.Is<Payment>(x => x.OrderId == orderId && x.Status == "Success")), Times.Once);
         _paymentRepo.Verify(p => p.SaveChangesAsync(), Times.Once);
+        _cartRepo.Verify(c => c.ClearCartAsync(cart.Id), Times.Once);
+        _cartRepo.Verify(c => c.SaveChangeAsync(), Times.Once);
     }
+
     [Fact]
     public async Task ProcessVnPayReturn_WhenHashValidButResponseFailed_ShouldSetPaymentFailed()
     {
@@ -223,6 +229,7 @@ public class PaymentServiceTests
         var query = new QueryCollection(queryDict);
 
         _orderRepo.Setup(o => o.GetByIdAsync(orderId)).ReturnsAsync(order);
+        _orderRepo.Setup(o => o.SaveChangesAsync()).Returns(Task.CompletedTask);
         _paymentRepo.Setup(p => p.GetByOrderIdAsync(orderId)).ReturnsAsync((Payment?)null);
         _paymentRepo.Setup(p => p.AddAsync(It.IsAny<Payment>())).ReturnsAsync((Payment p) => p);
         _paymentRepo.Setup(p => p.SaveChangesAsync()).Returns(Task.CompletedTask);
@@ -231,8 +238,61 @@ public class PaymentServiceTests
 
         result.Should().BeFalse();
         order.PaymentStatus.Should().Be(PaymentStatus.Failed);
+        order.Status.Should().Be(OrderStatus.Cancelled);
         _paymentRepo.Verify(p => p.AddAsync(It.Is<Payment>(x => x.Status == "Failed")), Times.Once);
         _paymentRepo.Verify(p => p.SaveChangesAsync(), Times.Once);
+        _orderRepo.Verify(o => o.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessVnPayReturn_WhenHashValidButResponseFailed_ShouldRestoreStock()
+    {
+        // Arrange
+        var orderId = Guid.NewGuid();
+        var order = MakeOrder(orderId);
+        var productId1 = 101;
+        var productId2 = 102;
+        var product1 = new Product { Id = productId1, Stock = 5, Name = "Product 1", Description = "Desc 1" };
+        var product2 = new Product { Id = productId2, Stock = 10, Name = "Product 2", Description = "Desc 2" };
+        
+        order.Items = new List<OrderItem>
+        {
+            new OrderItem { ProductId = productId1, Quantity = 2, Product = product1 },
+            new OrderItem { ProductId = productId2, Quantity = 3 } // tests fallback repository fetch
+        };
+        
+        var hashSecret = "HASHSECRETAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+
+        var signData = "vnp_ResponseCode=99&vnp_TransactionNo=12345&vnp_TxnRef=" + orderId.ToString();
+        var validHash = ShopNN.Utils.HashUtils.HmacSha512(hashSecret, signData);
+
+        var queryDict = new Dictionary<string, StringValues>
+        {
+            ["vnp_TxnRef"] = orderId.ToString(),
+            ["vnp_ResponseCode"] = "99",
+            ["vnp_TransactionNo"] = "12345",
+            ["vnp_SecureHash"] = validHash
+        };
+        var query = new QueryCollection(queryDict);
+
+        _orderRepo.Setup(o => o.GetByIdAsync(orderId)).ReturnsAsync(order);
+        _orderRepo.Setup(o => o.SaveChangesAsync()).Returns(Task.CompletedTask);
+        _paymentRepo.Setup(p => p.GetByOrderIdAsync(orderId)).ReturnsAsync((Payment?)null);
+        _paymentRepo.Setup(p => p.AddAsync(It.IsAny<Payment>())).ReturnsAsync((Payment p) => p);
+        _paymentRepo.Setup(p => p.SaveChangesAsync()).Returns(Task.CompletedTask);
+        _productRepo.Setup(p => p.GetByIdAsync(productId2)).ReturnsAsync(product2);
+
+        // Act
+        var result = await _sut.ProcessVnPayReturn(query);
+
+        // Assert
+        result.Should().BeFalse();
+        order.PaymentStatus.Should().Be(PaymentStatus.Failed);
+        order.Status.Should().Be(OrderStatus.Cancelled);
+        product1.Stock.Should().Be(7); // 5 + 2
+        product2.Stock.Should().Be(13); // 10 + 3
+        _productRepo.Verify(p => p.GetByIdAsync(productId2), Times.Once);
+        _orderRepo.Verify(o => o.SaveChangesAsync(), Times.Once);
     }
     #endregion
 

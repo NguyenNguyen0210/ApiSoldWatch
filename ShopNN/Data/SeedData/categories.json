@@ -1,0 +1,37 @@
+[
+  {
+    "Id": 1,
+    "Name": "Luxury Watches",
+    "ImageUrl": "https://images.unsplash.com/photo-1670177257750-9b47927f68eb?w=800"
+  },
+  {
+    "Id": 2,
+    "Name": "Sport Watches",
+    "ImageUrl": "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=800"
+  },
+  {
+    "Id": 3,
+    "Name": "Smart Watches",
+    "ImageUrl": "https://images.unsplash.com/photo-1434493907317-a46b5bc78344?w=800"
+  },
+  {
+    "Id": 4,
+    "Name": "Classic Watches",
+    "ImageUrl": "https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=800"
+  },
+  {
+    "Id": 5,
+    "Name": "Fashion Watches",
+    "ImageUrl": "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=800"
+  },
+  {
+    "Id": 6,
+    "Name": "Dive Watches",
+    "ImageUrl": "https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?w=800"
+  },
+  {
+    "Id": 7,
+    "Name": "Pilot Watches",
+    "ImageUrl": "https://images.unsplash.com/photo-1587925358603-c2eea5305bbc?w=800"
+  }
+]

@@ -12,5 +12,6 @@ namespace ShopNN.Services.Interface
         Task<List<OrderResponseDTO>> GetAllOrdersAsync();
         Task<PagedResult<OrderResponseDTO>> GetAllOrdersPagedAsync(OrderQueryDTO query);
         Task<OrderResponseDTO> UpdateStatusAsync(Guid orderId, OrderStatus status);
+        Task<OrderResponseDTO> UpdatePaymentStatusAsync(Guid orderId, PaymentStatus paymentStatus);
     }
 }

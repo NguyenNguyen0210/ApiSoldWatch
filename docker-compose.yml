@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+
+  # 1. Dịch vụ Cơ sở dữ liệu SQL Server
+  database:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql_container
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Top1zuka@123! # Đã đồng nhất mật khẩu ở đây
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_server_volume:/var/opt/mssql # Đổi về tên volume cũ chứa dữ liệu ShopNN của bạn
+    healthcheck:
+      # Đã sửa mật khẩu trong câu lệnh sqlcmd cho đồng nhất
+      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Top1zuka@123! -Q 'SELECT 1' -C" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # 2. Dịch vụ Backend ASP.NET Core API
+  backend:
+    build:
+      context: ./ShopNN
+      dockerfile: Dockerfile
+    container_name: backend_container
+    ports:
+      - "5290:8080"
+    environment:
+      # 1. Cấu hình Chuỗi kết nối tới DB trong Docker
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=database;Database=ShopNN;User Id=sa;Password=Top1zuka@123!;TrustServerCertificate=True;
+      - BaseUrlFE=http://localhost
+      # 2. Cấu hình Chìa khóa JWT (Đã sửa lỗi thiếu Key của bạn)
+      - Jwt__Key=V7fK9zQ2mX8pL4rT6yN3wA1cD5uH0sJkE9bR2qW8tY6ZxC4v
+
+      # 3. Cấu hình VnPay (Bốc từ file json của bạn qua để tránh lỗi sập tính năng thanh toán)
+      - VnPay__TmnCode=KBAKDCNU
+      - VnPay__HashSecret=GAO2D4DURFLO98IHWT76U11ZHV2B69CY
+      - VnPay__BaseUrl=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+      - VnPay__Command=pay
+      - VnPay__CurrCode=VND
+      - VnPay__Version=2.1.0
+      - VnPay__ReturnUrl=http://localhost:5000/api/payment/vnpay-return
+      
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: always
+
+  # 3. Dịch vụ Frontend React Web App (Nginx)
+  frontend:
+    build:
+      context: ./ShopNN-app
+      dockerfile: Dockerfile
+    container_name: frontend_container
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+# Khai báo sử dụng lại Volume cũ bên ngoài để không bị mất dữ liệu
+volumes:
+  sql_server_volume:
+    external: true

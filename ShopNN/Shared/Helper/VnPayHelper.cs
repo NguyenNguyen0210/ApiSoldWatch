@@ -23,7 +23,6 @@ namespace ShopNN.Shared.Helper
                 _responseData.Add(key, value);
             }
         }
-
         public string GetResponseData(string key)
         {
             return _responseData.TryGetValue(key, out var value) ? value : string.Empty;

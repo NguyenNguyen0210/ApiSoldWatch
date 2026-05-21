@@ -1,10 +1,6 @@
 namespace ShopNN.Shared.Enums
 {
-    public enum Role
-    {
-        Admin,
-        User
-    }
+
 
     public static class RoleNames
     {

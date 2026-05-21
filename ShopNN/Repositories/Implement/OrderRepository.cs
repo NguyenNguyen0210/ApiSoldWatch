@@ -7,10 +7,10 @@ using ShopNN.Shared.Wrappers;
 
 namespace ShopNN.Repositories.Implement
 {
-    public class OrderRepository : GenericRepository<Order>, IOrderRepository
+    public class OrderRepository : IOrderRepository
     {
         private readonly ApplicationDbContext _context;
-        public OrderRepository(ApplicationDbContext context) : base(context)
+        public OrderRepository(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -20,7 +20,7 @@ namespace ShopNN.Repositories.Implement
             await _context.SaveChangesAsync();
         }
 
-        public async override Task<IEnumerable<Order>> GetAllAsync()
+        public async Task<IEnumerable<Order>> GetAllAsync()
         {
             return await _context.Orders
                    .Include(o => o.Items)
@@ -30,13 +30,19 @@ namespace ShopNN.Repositories.Implement
                    .ToListAsync();
         }
 
-        public override async Task<Order?> GetByIdAsync(object id)
+        public async Task<Order?> GetByIdAsync(Guid id)
         {
-            Guid guidId = id is Guid g ? g : Guid.Parse(id.ToString()!);
             return await _context.Orders
                    .Include(o => o.Items)
                        .ThenInclude(i => i.Product)
-                   .FirstOrDefaultAsync(o => o.Id == guidId);
+                   .FirstOrDefaultAsync(o => o.Id == id);
+        }
+
+        public async Task<Order> AddAsync(Order data)
+        {
+            _context.Orders.Add(data);
+            await _context.SaveChangesAsync();
+            return data;
         }
 
         public async Task<List<Order>> GetByUserIdAsync(Guid userId) =>

@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using ShopNN.DTOs;
 using ShopNN.Entities;
@@ -23,7 +24,7 @@ namespace ShopNN.Tests.Services
                 cfg.AddProfile<MappingProfile>());
             _mapper = config.CreateMapper();
 
-            _sut = new ProductService(_repoMock.Object, _mapper);
+            _sut = new ProductService(_repoMock.Object, _mapper, new Mock<ILogger<ProductService>>().Object);
         }
 
         private static Product MakeProduct(int? id = null) => new()
