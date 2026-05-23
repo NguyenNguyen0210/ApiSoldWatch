@@ -39,7 +39,7 @@ export default function ProductListPage() {
     SortBy: searchParams.get("SortBy") || "name",
     SortOrder: searchParams.get("SortOrder") || "asc",
   });
-  const [priceRange, setPriceRange] = useState([0, 500000000]);
+  const [priceRange, setPriceRange] = useState([0, 30000000]);
 
   // Load categories
   useEffect(() => {
@@ -53,7 +53,7 @@ export default function ProductListPage() {
       const params = {
         ...filters,
         MinPrice: priceRange[0] > 0 ? priceRange[0] : undefined,
-        MaxPrice: priceRange[1] < 500000000 ? priceRange[1] : undefined,
+        MaxPrice: priceRange[1] < 30000000 ? priceRange[1] : undefined,
         Page: page,
         PageSize: pagination.pageSize,
       };
@@ -94,7 +94,7 @@ export default function ProductListPage() {
 
   const handleReset = () => {
     setFilters({ Search: "", CategoryId: undefined, InStock: undefined, SortBy: "name", SortOrder: "asc" });
-    setPriceRange([0, 500000000]);
+    setPriceRange([0, 300000000]);
   };
 
   const formatPrice = (price) =>

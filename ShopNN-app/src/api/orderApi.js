@@ -14,14 +14,10 @@ const orderApi = {
   searchOrders: (params) => axiosClient.get("/Order/admin/search", { params }),
 
   // PUT /api/Order/admin/:id/status — statusNum as raw number body (0=Pending, 1=Processing, 2=Shipped, 3=Delivered, 4=Cancelled)
-  updateStatus: (id, statusNum) => axiosClient.put(`/Order/admin/${id}/status`, statusNum, {
-    headers: { "Content-Type": "application/json" }
-  }),
+  updateStatus: (id, statusNum) => axiosClient.put(`/Order/admin/${id}/status`, statusNum),
 
   // PUT /api/Order/admin/:id/payment-status — statusNum as raw number body (0=Unpaid, 1=Paid, 2=Failed, 3=Refunded)
-  updatePaymentStatus: (id, statusNum) => axiosClient.put(`/Order/admin/${id}/payment-status`, statusNum, {
-    headers: { "Content-Type": "application/json" }
-  }),
+  updatePaymentStatus: (id, statusNum) => axiosClient.put(`/Order/admin/${id}/payment-status`, statusNum),
 };
 
 export default orderApi;

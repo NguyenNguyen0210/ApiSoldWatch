@@ -52,7 +52,8 @@ export default function AdminLayout() {
             <div className="admin-user-trigger">
               <Avatar
                 className="admin-avatar"
-                icon={<UserOutlined />}
+                src = "https://img.magnific.com/vecteurs-libre/homme-affaires-caractere-avatar-isole_24877-60111.jpg?w=800"
+                // icon={<UserOutlined />}
               />
               <Text className="admin-username">
                 {user?.userName || "Admin"}

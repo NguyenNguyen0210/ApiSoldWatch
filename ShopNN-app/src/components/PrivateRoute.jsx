@@ -15,7 +15,6 @@ export function AdminRoute({ children }) {
   return children;
 }
 
-// Chỉ dành cho khách chưa đăng nhập (ngăn truy cập login/register khi đã đăng nhập)
 export function GuestRoute({ children }) {
   const { accessToken, isAdmin } = useAuthStore();
   if (accessToken) {

@@ -100,7 +100,9 @@ export default function MainLayout() {
                 <div className="header-user-trigger">
                   <Avatar
                     className="header-avatar"
-                    icon={<UserOutlined />}
+                    
+                    src = "https://plus.unsplash.com/premium_photo-1738550163729-ac47e1d5f8f5?w%20=800"
+                    // icon={<UserOutlined />}
                   />
                   <Text className="header-username">
                     {user?.userName || "User"}

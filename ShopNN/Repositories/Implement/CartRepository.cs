@@ -50,9 +50,6 @@ namespace ShopNN.Repositories.Implement
             return data;
         }
 
-        /// <summary>
-        /// Read-only: loads cart with Items + Product for response mapping (AsNoTracking).
-        /// </summary>
         public async Task<Cart?> GetCartByUserIdAsync(Guid userId)
         {
             var cart = await _context.Carts
@@ -63,11 +60,6 @@ namespace ShopNN.Repositories.Implement
                 .FirstOrDefaultAsync();
             return cart;
         }
-
-        /// <summary>
-        /// Write-ready: loads cart with Items for tracking (WITHOUT .ThenInclude(Product)
-        /// to avoid tracking conflicts with ProductRepository).
-        /// </summary>
         public async Task<Cart?> GetCartForUpdateAsync(Guid userId)
         {
             var cart = await _context.Carts

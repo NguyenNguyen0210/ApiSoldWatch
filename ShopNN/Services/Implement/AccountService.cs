@@ -72,7 +72,6 @@ namespace ShopNN.Services.Implement
                 throw new BadRequestException($"Gán quyền thất bại: {errors}");
             }
 
-            // Gửi email chúc mừng đăng ký thành công
             try
             {
                 var emailSubject = "Chào mừng bạn đến với ShopNN!";
