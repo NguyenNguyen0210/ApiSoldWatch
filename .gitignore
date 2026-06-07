@@ -46,6 +46,7 @@ __pycache__/
 # Secrets & Environment
 .env
 .env.*
+!.env.example
 appsettings.Development.json
 appsettings.Production.json
 

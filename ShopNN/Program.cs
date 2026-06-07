@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ShopNN.Entities;
 using ShopNN.Middlewares;
 using ShopNN.Shared.Extensions;
@@ -43,6 +43,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// ✅ THÊM ĐOẠN NÀY
+
 
 app.Run();

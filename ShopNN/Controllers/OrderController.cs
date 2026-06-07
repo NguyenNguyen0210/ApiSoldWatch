@@ -1,6 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ShopNN.DTOs;
+using ShopNN.DTOs.Account;
+using ShopNN.DTOs.Product;
+using ShopNN.DTOs.Category;
+using ShopNN.DTOs.Cart;
+using ShopNN.DTOs.Order;
 using ShopNN.Services.Interface;
 using System.Security.Claims;
 using ShopNN.Shared.Exceptions;
@@ -33,7 +37,7 @@ namespace ShopNN.Controllers
             if (userId == null)
                 throw new UnauthorizedException("Session expired.");
 
-            var orderResponse = await _orderService.CreateOrderAsync(userId.Value, request.PaymentMethod);
+            var orderResponse = await _orderService.CreateOrderAsync(userId.Value, request);
 
             if (request.PaymentMethod == PaymentMethod.VnPay)
             {

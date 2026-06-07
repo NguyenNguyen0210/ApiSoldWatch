@@ -16,6 +16,10 @@ namespace ShopNN.Entities
         public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.COD;
         public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Unpaid;
 
+        public string ReceiverName { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public string ShippingAddress { get; set; } = string.Empty;
+
         public List<OrderItem> Items { get; set; } = new();
     }
 }

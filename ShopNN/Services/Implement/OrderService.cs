@@ -1,6 +1,10 @@
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using ShopNN.DTOs;
+using ShopNN.DTOs.Account;
+using ShopNN.DTOs.Product;
+using ShopNN.DTOs.Category;
+using ShopNN.DTOs.Cart;
+using ShopNN.DTOs.Order;
 using ShopNN.Entities;
 using ShopNN.Repositories.Interface;
 using ShopNN.Services.Interface;
@@ -32,9 +36,9 @@ namespace ShopNN.Services.Implement
             _logger = logger;
         }
 
-        public async Task<OrderResponseDTO> CreateOrderAsync(Guid userId, PaymentMethod paymentMethod)
+        public async Task<OrderResponseDTO> CreateOrderAsync(Guid userId, OrderCreateRequestDTO request)
         {
-            _logger.LogInformation("Starting order creation process for User ID: {UserId} with PaymentMethod: {PaymentMethod}", userId, paymentMethod);
+            _logger.LogInformation("Starting order creation process for User ID: {UserId} with PaymentMethod: {PaymentMethod}", userId, request.PaymentMethod);
             var cart = await _cartRepository.GetCartByUserIdAsync(userId);
 
             if (cart == null || !cart.Items.Any())
@@ -53,8 +57,11 @@ namespace ShopNN.Services.Implement
                     UserId = userId,
                     CreatedAt = DateTime.UtcNow,
                     Status = OrderStatus.Pending,
-                    PaymentMethod = paymentMethod,
+                    PaymentMethod = request.PaymentMethod,
                     PaymentStatus = PaymentStatus.Unpaid,
+                    ReceiverName = request.ReceiverName,
+                    PhoneNumber = request.PhoneNumber,
+                    ShippingAddress = request.ShippingAddress,
                     TotalAmount = 0,
                     Items = new List<OrderItem>()
                 };
@@ -86,14 +93,14 @@ namespace ShopNN.Services.Implement
                     order.TotalAmount += orderItem.UnitPrice * orderItem.Quantity;
                 }
 
-                if (paymentMethod == PaymentMethod.COD)
+                if (request.PaymentMethod == PaymentMethod.COD)
                 {
                     _logger.LogInformation("COD order. Clearing items from Cart ID: {CartId}...", cart.Id);
                     await _cartRepository.ClearCartAsync(cart.Id);
                 }
                 else
                 {
-                    _logger.LogInformation("Online payment method ({PaymentMethod}). Cart ID: {CartId} will be cleared upon successful payment confirmation.", paymentMethod, cart.Id);
+                    _logger.LogInformation("Online payment method ({PaymentMethod}). Cart ID: {CartId} will be cleared upon successful payment confirmation.", request.PaymentMethod, cart.Id);
                 }
 
                 await _orderRepository.AddAsync(order);

@@ -1,4 +1,4 @@
-namespace ShopNN.DTOs
+namespace ShopNN.DTOs.Category
 {
     public class CategoryResponseDTO
     {

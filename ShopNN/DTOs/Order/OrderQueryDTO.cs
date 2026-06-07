@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using ShopNN.Shared.Enums;
 
-namespace ShopNN.DTOs
+namespace ShopNN.DTOs.Order
 {
     public class OrderQueryDTO
     {

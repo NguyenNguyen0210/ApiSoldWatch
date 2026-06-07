@@ -1,5 +1,9 @@
-﻿using ShopNN.Entities;
-using ShopNN.DTOs;
+using ShopNN.Entities;
+using ShopNN.DTOs.Account;
+using ShopNN.DTOs.Product;
+using ShopNN.DTOs.Category;
+using ShopNN.DTOs.Cart;
+using ShopNN.DTOs.Order;
 namespace ShopNN.Services.Interface
 {
     public interface IAuthService
@@ -12,3 +16,4 @@ namespace ShopNN.Services.Interface
 
     }
 }
+

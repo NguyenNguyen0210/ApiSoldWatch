@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ShopNN.DTOs
+namespace ShopNN.DTOs.Account
 {
     public class UserProfileResponseDTO
     {

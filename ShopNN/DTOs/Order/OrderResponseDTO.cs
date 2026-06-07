@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace ShopNN.DTOs
+namespace ShopNN.DTOs.Order
 {
     public class OrderResponseDTO
     {
@@ -13,6 +13,10 @@ namespace ShopNN.DTOs
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? PaymentUrl { get; set; }
+
+        public string ReceiverName { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public string ShippingAddress { get; set; } = string.Empty;
         
         public List<OrderItemResponseDTO> Items { get; set; } = new();
     }

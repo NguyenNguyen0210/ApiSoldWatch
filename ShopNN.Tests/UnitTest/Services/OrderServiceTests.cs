@@ -3,7 +3,11 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Moq;
-using ShopNN.DTOs;
+using ShopNN.DTOs.Account;
+using ShopNN.DTOs.Product;
+using ShopNN.DTOs.Category;
+using ShopNN.DTOs.Cart;
+using ShopNN.DTOs.Order;
 using ShopNN.Entities;
 using ShopNN.Mappings;
 using ShopNN.Repositories.Interface;
@@ -72,6 +76,14 @@ public class OrderServiceTests
         Items         = new List<OrderItem>()
     };
 
+    private static OrderCreateRequestDTO MakeCreateRequest(PaymentMethod method = PaymentMethod.COD) => new()
+    {
+        PaymentMethod = method,
+        ReceiverName = "Nguyen Nguyen",
+        PhoneNumber = "0987654321",
+        ShippingAddress = "123 Main St, Ward 5, District 10, HCMC"
+    };
+
     private Mock<IDbContextTransaction> SetupTransaction()
     {
         var tx = new Mock<IDbContextTransaction>();
@@ -94,7 +106,7 @@ public class OrderServiceTests
         _cartRepo.Setup(c => c.GetCartByUserIdAsync(It.IsAny<Guid>()))
                  .ReturnsAsync(cart);
 
-        var act = async () => await _sut.CreateOrderAsync(Guid.NewGuid(), PaymentMethod.COD);
+        var act = async () => await _sut.CreateOrderAsync(Guid.NewGuid(), MakeCreateRequest(PaymentMethod.COD));
 
         await act.Should().ThrowAsync<BadRequestException>()
                  .WithMessage("Your cart is empty.");
@@ -118,7 +130,7 @@ public class OrderServiceTests
         _cartRepo.Setup(c => c.GetCartByUserIdAsync(uid)).ReturnsAsync(cart);
         var tx = SetupTransaction();
 
-        var act = async () => await _sut.CreateOrderAsync(uid, PaymentMethod.COD);
+        var act = async () => await _sut.CreateOrderAsync(uid, MakeCreateRequest(PaymentMethod.COD));
 
         await act.Should().ThrowAsync<NotFoundException>()
                  .WithMessage("Product not found.");
@@ -138,10 +150,17 @@ public class OrderServiceTests
         _orderRepo.Setup(o => o.SaveChangesAsync()).Returns(Task.CompletedTask);
         SetupTransaction();
 
-        await _sut.CreateOrderAsync(uid, PaymentMethod.COD);
+        var request = MakeCreateRequest(PaymentMethod.COD);
+        var result = await _sut.CreateOrderAsync(uid, request);
 
         product.Stock.Should().Be(7); 
-        _orderRepo.Verify(o => o.AddAsync(It.IsAny<Order>()), Times.Once);
+        _orderRepo.Verify(o => o.AddAsync(It.Is<Order>(o => 
+            o.ReceiverName == request.ReceiverName && 
+            o.PhoneNumber == request.PhoneNumber && 
+            o.ShippingAddress == request.ShippingAddress)), Times.Once);
+        result.ReceiverName.Should().Be(request.ReceiverName);
+        result.PhoneNumber.Should().Be(request.PhoneNumber);
+        result.ShippingAddress.Should().Be(request.ShippingAddress);
     }
     #endregion
 
@@ -211,7 +230,7 @@ public class OrderServiceTests
         _cartRepo.Setup(c => c.GetCartByUserIdAsync(It.IsAny<Guid>()))
                  .ReturnsAsync((Cart?)null);
 
-        var act = async () => await _sut.CreateOrderAsync(Guid.NewGuid(), PaymentMethod.COD);
+        var act = async () => await _sut.CreateOrderAsync(Guid.NewGuid(), MakeCreateRequest(PaymentMethod.COD));
 
         await act.Should().ThrowAsync<BadRequestException>()
                  .WithMessage("Your cart is empty.");
@@ -228,7 +247,7 @@ public class OrderServiceTests
         _cartRepo.Setup(c => c.GetCartByUserIdAsync(uid)).ReturnsAsync(cart);
         var tx = SetupTransaction();
 
-        var act = async () => await _sut.CreateOrderAsync(uid, PaymentMethod.COD);
+        var act = async () => await _sut.CreateOrderAsync(uid, MakeCreateRequest(PaymentMethod.COD));
 
         await act.Should().ThrowAsync<BadRequestException>()
                  .WithMessage("*out of stock*");
@@ -250,7 +269,7 @@ public class OrderServiceTests
         _orderRepo.Setup(o => o.SaveChangesAsync()).Returns(Task.CompletedTask);
         SetupTransaction();
 
-        var result = await _sut.CreateOrderAsync(uid, PaymentMethod.VnPay);
+        var result = await _sut.CreateOrderAsync(uid, MakeCreateRequest(PaymentMethod.VnPay));
 
         result.TotalAmount.Should().Be(2 * 100 + 3 * 200);
         result.Items.Should().HaveCount(2);
@@ -352,3 +371,4 @@ public class OrderServiceTests
     }
     #endregion
 }
+

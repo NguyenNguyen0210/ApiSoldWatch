@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ShopNN.DTOs
+namespace ShopNN.DTOs.Product
 {
     public class ProductResponseDTO
     {

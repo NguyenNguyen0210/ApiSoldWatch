@@ -1,4 +1,8 @@
-using ShopNN.DTOs;
+using ShopNN.DTOs.Account;
+using ShopNN.DTOs.Product;
+using ShopNN.DTOs.Category;
+using ShopNN.DTOs.Cart;
+using ShopNN.DTOs.Order;
 
 namespace ShopNN.Services.Interface
 {
@@ -11,3 +15,4 @@ namespace ShopNN.Services.Interface
         Task<bool> DeleteAsync(int id);
     }
 }
+

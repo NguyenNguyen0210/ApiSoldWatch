@@ -1,7 +1,11 @@
 using ShopNN.Shared.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ShopNN.DTOs;
+using ShopNN.DTOs.Account;
+using ShopNN.DTOs.Product;
+using ShopNN.DTOs.Category;
+using ShopNN.DTOs.Cart;
+using ShopNN.DTOs.Order;
 using ShopNN.Services.Interface;
 using ShopNN.Shared.Exceptions;
 using ShopNN.Shared.Wrappers;
@@ -61,3 +65,4 @@ namespace ShopNN.Controllers
         }
     }
 }
+

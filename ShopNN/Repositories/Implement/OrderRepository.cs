@@ -1,6 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using ShopNN.DTOs;
+using ShopNN.DTOs.Account;
+using ShopNN.DTOs.Product;
+using ShopNN.DTOs.Category;
+using ShopNN.DTOs.Cart;
+using ShopNN.DTOs.Order;
 using ShopNN.Entities;
 using ShopNN.Repositories.Interface;
 using ShopNN.Shared.Wrappers;
@@ -117,3 +121,4 @@ namespace ShopNN.Repositories.Implement
         }
     }
 }
+
